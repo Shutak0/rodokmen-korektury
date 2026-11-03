@@ -427,7 +427,9 @@
         let currentPhoto = null;
         let currentRecords = [];
         let folderFilter = 'all';
-        let googleScriptUrl = localStorage.getItem('google_script_url') || '';
+        // Default Google Apps Script URL pre-configured
+        const DEFAULT_GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8sBvGBs1tlFGAyon4si2zZQ_VseR6t17Xdc5V2OzKfNK95hbHW_ttnRWlTIcotXYm/exec";
+        let googleScriptUrl = localStorage.getItem('google_script_url') || DEFAULT_GOOGLE_SCRIPT_URL;
 
         let scale = 0.55;
         let posX = 0;
@@ -491,13 +493,26 @@
         function initApp() {
             Promise.all([
                 fetch('data/photos.json').then(r => r.json()),
-                fetch('data/records.json').then(r => r.json())
-            ]).then(([photosData, recordsData]) => {
+                fetch('data/records.json').then(r => r.json()),
+                googleScriptUrl ? fetch(googleScriptUrl + '?auth_token=' + encodeURIComponent(AUTH_TOKEN)).then(r => r.json()).catch(() => []) : Promise.resolve([])
+            ]).then(([photosData, recordsData, googleData]) => {
                 photos = photosData;
-                
-                const localEdits = JSON.parse(localStorage.getItem('archival_local_records') || '{}');
                 allRecords = recordsData;
 
+                // Merge verified edits from Google Sheets
+                if (Array.isArray(googleData) && googleData.length > 0) {
+                    const modifiedPhotos = new Set(googleData.map(g => g.source_file));
+                    allRecords = allRecords.filter(r => !modifiedPhotos.has(r.source_file) && !modifiedPhotos.has(r.source_file.replace('/', '\\\\')));
+                    allRecords.push(...googleData);
+                    
+                    googleData.forEach(g => {
+                        const p = photos.find(ph => ph.rel_path === g.source_file || ph.rel_path === g.source_file.replace('\\\\', '/'));
+                        if (p && g.is_verified) p.is_verified = true;
+                    });
+                }
+
+                // Merge with any offline edits from localStorage
+                const localEdits = JSON.parse(localStorage.getItem('archival_local_records') || '{}');
                 for (let photoPath in localEdits) {
                     allRecords = allRecords.filter(r => r.source_file !== photoPath);
                     allRecords.push(...localEdits[photoPath]);
@@ -506,7 +521,7 @@
                 const verifiedMap = JSON.parse(localStorage.getItem('archival_verified_map') || '{}');
                 photos.forEach(p => {
                     if (verifiedMap[p.rel_path]) p.is_verified = true;
-                    p.record_count = allRecords.filter(r => r.source_file === p.rel_path || r.source_file === p.rel_path.replace('/', '\\')).length;
+                    p.record_count = allRecords.filter(r => r.source_file === p.rel_path || r.source_file === p.rel_path.replace('/', '\\\\')).length;
                 });
 
                 renderPhotoList();
