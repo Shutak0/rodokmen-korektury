@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archivní verifikační centrum | GitHub Pages + Google Sheets</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f141c;
+            --bg-panel: #171f2c;
+            --bg-card: #1f2a3c;
+            --border: #2e3d54;
+            --accent: #d4af37;
+            --accent-hover: #e5c358;
+            --accent-blue: #3b82f6;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 56px;
+            flex-shrink: 0;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.15rem;
+            color: var(--accent);
+            letter-spacing: 0.5px;
+        }
+        .brand span { color: var(--text-main); font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 500; opacity: 0.7; }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .workspace {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 56px);
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .sidebar-header {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .search-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            width: 100%;
+        }
+        .filter-tabs { display: flex; gap: 6px; }
+        .tab-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            flex: 1;
+            text-align: center;
+        }
+        .tab-btn.active { background: var(--border); color: var(--text-main); font-weight: 600; }
+        .photo-list { overflow-y: auto; flex: 1; }
+        .photo-item {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            transition: background 0.15s;
+        }
+        .photo-item:hover { background: var(--bg-card); }
+        .photo-item.active { background: rgba(212, 175, 55, 0.15); border-left: 3px solid var(--accent); }
+        .photo-meta { display: flex; flex-direction: column; gap: 2px; }
+        .photo-title { font-weight: 600; color: #fff; }
+        .photo-subtitle { font-size: 0.75rem; color: var(--text-muted); }
+        .badge { font-size: 0.7rem; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+        .badge-verified { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+        .badge-pending { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+
+        .viewer-container {
+            flex: 1;
+            background: #090c10;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-right: 1px solid var(--border);
+        }
+        .viewer-toolbar {
+            background: rgba(23, 31, 44, 0.85);
+            backdrop-filter: blur(8px);
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 10;
+            border-bottom: 1px solid var(--border);
+        }
+        .tool-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.15s;
+            text-decoration: none;
+        }
+        .tool-btn:hover { background: var(--border); border-color: var(--accent); }
+        .canvas-area {
+            flex: 1;
+            position: relative;
+            cursor: grab;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .canvas-area:active { cursor: grabbing; }
+        #manuscript-img {
+            max-width: none;
+            position: absolute;
+            transform-origin: center center;
+            transition: filter 0.2s ease;
+            user-select: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        .editor-container {
+            width: 580px;
+            background: var(--bg-panel);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .editor-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-card);
+        }
+        .editor-title { font-size: 0.95rem; font-weight: 700; color: var(--accent); }
+        .editor-actions { display: flex; align-items: center; gap: 8px; }
+        .btn-save {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+        .btn-save:hover { background: var(--accent-hover); transform: translateY(-1px); }
+        .btn-add {
+            background: var(--bg-dark);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .btn-add:hover { border-color: var(--accent-blue); }
+
+        .records-scroll { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+        .record-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+        }
+        .card-row { display: flex; gap: 10px; }
+        .field-group { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .field-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+        .field-input {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            outline: none;
+            font-family: inherit;
+        }
+        .field-input:focus { border-color: var(--accent); }
+        .btn-del-row {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 1.1rem;
+            opacity: 0.6;
+        }
+        .btn-del-row:hover { opacity: 1; }
+
+        .editor-footer {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .verify-checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+        .verify-checkbox-label input { width: 18px; height: 18px; accent-color: var(--success); cursor: pointer; }
+
+        /* Login Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(7, 10, 15, 0.92);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-box {
+            background: var(--bg-panel);
+            border: 1px solid var(--accent);
+            padding: 30px;
+            border-radius: 12px;
+            width: 420px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .modal-title { font-family: 'Cinzel', serif; color: var(--accent); font-size: 1.4rem; }
+        .pin-input {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            color: var(--accent);
+            font-size: 1.8rem;
+            text-align: center;
+            letter-spacing: 6px;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            width: 100%;
+            outline: none;
+        }
+        .btn-modal {
+            background: var(--accent);
+            color: #000;
+            font-weight: 700;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .btn-modal:hover { background: var(--accent-hover); }
+
+        .high-contrast { filter: contrast(160%) brightness(110%); }
+        .inverted { filter: invert(90%) contrast(150%); }
+        .sharpen { filter: contrast(130%) grayscale(40%); }
+    </style>
+</head>
+<body>
+
+    <!-- PIN Modal -->
+    <div id="loginModal" class="modal-overlay">
+        <div class="modal-box">
+            <h2 class="modal-title">Zabezpečený přístup</h2>
+            <p style="font-size:0.85rem; color:var(--text-muted)">Zadejte autorizační PIN kód pro ověření a korekturu historických rukopisů.</p>
+            <input type="password" id="pinCode" class="pin-input" maxlength="8" placeholder="••••" autofocus onkeydown="if(event.key==='Enter') doLogin()">
+            <div id="loginError" style="color:var(--danger); font-size:0.8rem; display:none;">Nesprávný kód PIN. Zkuste to znovu.</div>
+            <button class="btn-modal" onclick="doLogin()">Odemknout editor</button>
+            <div style="font-size:0.75rem; color:var(--text-muted); opacity:0.8;">Výchozí kód pro správce: <code>1651</code></div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal-overlay" style="display:none;">
+        <div class="modal-box" style="text-align:left;">
+            <h2 class="modal-title" style="text-align:center;">⚙️ Nastavení Google Sheets</h2>
+            <p style="font-size:0.85rem; color:var(--text-muted)">
+                Zadejte URL adresu vaší webové aplikace Google Apps Script, aby se provedené změny ukládaly přímo do vaší Google Tabulky:
+            </p>
+            <div class="field-group">
+                <span class="field-label">Google Apps Script Web App URL</span>
+                <input type="text" id="scriptUrlInput" class="field-input" placeholder="https://script.google.com/macros/s/.../exec">
+            </div>
+            <button class="btn-modal" onclick="saveSettings()">Uložit propojení</button>
+            <button class="tool-btn" style="text-align:center; justify-content:center;" onclick="closeSettings()">Zavřít</button>
+        </div>
+    </div>
+
+    <header>
+        <div class="brand">
+            🏛️ Archivum Bohemiae
+            <span>| Cloudová korekce (GitHub Pages + Google Sheets)</span>
+        </div>
+        <div class="header-controls">
+            <span id="progressStats" style="font-size: 0.8rem; color: var(--text-muted)">Načítání...</span>
+            <button class="tool-btn" onclick="openSettings()">⚙️ Google Sheet</button>
+            <button class="tool-btn" onclick="exportDataJSON()">📥 Export JSON</button>
+            <button class="tool-btn" onclick="logout()">🔒 Zamknout</button>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <input type="text" id="photoSearch" class="search-box" placeholder="Hledat snímek či vesnici..." oninput="renderPhotoList()">
+                <div class="filter-tabs">
+                    <button class="tab-btn active" id="tabAll" onclick="setFolderFilter('all')">Vše (190)</button>
+                    <button class="tab-btn" id="tab1632" onclick="setFolderFilter('1632')">Hořice 1632</button>
+                    <button class="tab-btn" id="tabNachod" onclick="setFolderFilter('nachod')">Náchod 40.l.</button>
+                </div>
+            </div>
+            <div class="photo-list" id="photoList"></div>
+        </div>
+
+        <div class="viewer-container">
+            <div class="viewer-toolbar">
+                <span id="currentImageLabel" style="font-weight:600; font-size:0.85rem; color:#fff;">Vyberte fotografii</span>
+                <div style="margin-left:auto; display:flex; gap:8px;">
+                    <button class="tool-btn" onclick="zoom(1.25)">🔍 +</button>
+                    <button class="tool-btn" onclick="zoom(0.8)">🔍 −</button>
+                    <button class="tool-btn" onclick="resetZoom()">⟲ Reset</button>
+                    <button class="tool-btn" onclick="rotateImage()">↻ 90°</button>
+                    <button class="tool-btn" onclick="toggleContrast()">🌓 Kontrast</button>
+                </div>
+            </div>
+            <div class="canvas-area" id="canvasArea" onwheel="handleWheel(event)" onmousedown="startDrag(event)">
+                <img id="manuscript-img" src="" alt="Vyberte snímek z levého panelu" draggable="false">
+            </div>
+        </div>
+
+        <div class="editor-container">
+            <div class="editor-header">
+                <div class="editor-title" id="editorTitle">Záznamy na stránce</div>
+                <div class="editor-actions">
+                    <button class="btn-add" onclick="addNewRecord()">+ Přidat osobu</button>
+                    <button class="btn-save" onclick="saveCurrentRecords()">💾 Uložit změny</button>
+                </div>
+            </div>
+            <div class="records-scroll" id="recordsList">
+                <div style="text-align:center; color:var(--text-muted); margin-top:40px; font-size:0.85rem;">
+                    Vyberte snímek vlevo pro zobrazení a editaci řádků.
+                </div>
+            </div>
+            <div class="editor-footer">
+                <label class="verify-checkbox-label">
+                    <input type="checkbox" id="checkVerified">
+                    Stránka kompletně zkontrolována specialistou
+                </label>
+                <span id="saveStatus" style="font-size:0.8rem; color:var(--success); font-weight:600;"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DEFAULT_PIN = "1651";
+        let photos = [];
+        let allRecords = [];
+        let currentPhoto = null;
+        let currentRecords = [];
+        let folderFilter = 'all';
+        let googleScriptUrl = localStorage.getItem('google_script_url') || '';
+
+        let scale = 0.55;
+        let posX = 0;
+        let posY = 0;
+        let rotation = 0;
+        let contrastMode = 0;
+        let isDragging = false;
+        let startX, startY;
+
+        window.onload = function() {
+            const savedPin = sessionStorage.getItem('archival_pin');
+            if (savedPin === DEFAULT_PIN) {
+                document.getElementById('loginModal').style.display = 'none';
+                initApp();
+            } else {
+                document.getElementById('loginModal').style.display = 'flex';
+            }
+        };
+
+        function doLogin() {
+            const pin = document.getElementById('pinCode').value;
+            if (pin === DEFAULT_PIN) {
+                sessionStorage.setItem('archival_pin', pin);
+                document.getElementById('loginModal').style.display = 'none';
+                initApp();
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('archival_pin');
+            location.reload();
+        }
+
+        function openSettings() {
+            document.getElementById('scriptUrlInput').value = googleScriptUrl;
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+
+        function saveSettings() {
+            googleScriptUrl = document.getElementById('scriptUrlInput').value.trim();
+            localStorage.setItem('google_script_url', googleScriptUrl);
+            closeSettings();
+            alert('Nastavení uloženo! Nyní se změny budou odesílat do vaší Google Tabulky.');
+        }
+
+        function initApp() {
+            // Load photos.json and records.json
+            Promise.all([
+                fetch('data/photos.json').then(r => r.json()),
+                fetch('data/records.json').then(r => r.json())
+            ]).then(([photosData, recordsData]) => {
+                photos = photosData;
+                
+                // Merge with any local offline edits from localStorage
+                const localEdits = JSON.parse(localStorage.getItem('archival_local_records') || '{}');
+                allRecords = recordsData;
+
+                // Apply local edits
+                for (let photoPath in localEdits) {
+                    allRecords = allRecords.filter(r => r.source_file !== photoPath);
+                    allRecords.push(...localEdits[photoPath]);
+                }
+
+                // Check verification states from localStorage
+                const verifiedMap = JSON.parse(localStorage.getItem('archival_verified_map') || '{}');
+                photos.forEach(p => {
+                    if (verifiedMap[p.rel_path]) p.is_verified = true;
+                    p.record_count = allRecords.filter(r => r.source_file === p.rel_path || r.source_file === p.rel_path.replace('/', '\\')).length;
+                });
+
+                renderPhotoList();
+                updateStats();
+                if (photos.length > 0) selectPhoto(photos[0]);
+            }).catch(err => {
+                console.error("Error loading JSON data:", err);
+            });
+        }
+
+        function setFolderFilter(f) {
+            folderFilter = f;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if (f === 'all') document.getElementById('tabAll').classList.add('active');
+            if (f === '1632') document.getElementById('tab1632').classList.add('active');
+            if (f === 'nachod') document.getElementById('tabNachod').classList.add('active');
+            renderPhotoList();
+        }
+
+        function renderPhotoList() {
+            const list = document.getElementById('photoList');
+            const search = document.getElementById('photoSearch').value.toLowerCase();
+            list.innerHTML = '';
+
+            const filtered = photos.filter(p => {
+                if (folderFilter === '1632' && !p.folder.includes('1632')) return false;
+                if (folderFilter === 'nachod' && !p.folder.includes('Náchod')) return false;
+                if (search && !p.filename.toLowerCase().includes(search) && !p.rel_path.toLowerCase().includes(search)) return false;
+                return true;
+            });
+
+            filtered.forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'photo-item' + (currentPhoto && currentPhoto.rel_path === p.rel_path ? ' active' : '');
+                item.onclick = () => selectPhoto(p);
+
+                const badgeClass = p.is_verified ? 'badge-verified' : 'badge-pending';
+                const badgeText = p.is_verified ? '✓ Ověřeno' : `${p.record_count} řádků`;
+
+                item.innerHTML = `
+                    <div class="photo-meta">
+                        <div class="photo-title">${p.filename}</div>
+                        <div class="photo-subtitle">${p.folder.replace(' (Zámrsk)', '')}</div>
+                    </div>
+                    <span class="badge ${badgeClass}">${badgeText}</span>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function updateStats() {
+            const total = photos.length;
+            const verified = photos.filter(p => p.is_verified).length;
+            document.getElementById('progressStats').innerText = `Zkontrolováno: ${verified} / ${total} snímků (${Math.round(verified/total*100 || 0)}%)`;
+        }
+
+        function selectPhoto(photo) {
+            currentPhoto = photo;
+            document.getElementById('currentImageLabel').innerText = `${photo.folder} ➔ ${photo.filename}`;
+            renderPhotoList();
+
+            // Set image path relative to root
+            const img = document.getElementById('manuscript-img');
+            img.src = `${encodeURI(photo.rel_path)}`;
+            resetZoom();
+
+            // Filter records for this photo
+            currentRecords = allRecords.filter(r => r.source_file === photo.rel_path || r.source_file === photo.rel_path.replace('/', '\\'));
+            document.getElementById('checkVerified').checked = photo.is_verified || false;
+            renderRecords();
+        }
+
+        function renderRecords() {
+            const container = document.getElementById('recordsList');
+            document.getElementById('editorTitle').innerText = `Záznamy (${currentRecords.length} osob)`;
+            container.innerHTML = '';
+
+            if (currentRecords.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:30px; color:var(--text-muted); font-size:0.85rem;">
+                        Pro tento snímek zatím není zadán žádný řádek.<br><br>
+                        <button class="btn-add" onclick="addNewRecord()">+ Přidat první osobu</button>
+                    </div>
+                `;
+                return;
+            }
+
+            currentRecords.forEach((rec, idx) => {
+                const card = document.createElement('div');
+                card.className = 'record-card';
+                card.innerHTML = `
+                    <button class="btn-del-row" title="Smazat záznam" onclick="deleteRecord(${idx})">&times;</button>
+                    <div class="card-row">
+                        <div class="field-group" style="flex:2">
+                            <span class="field-label">Jméno a Příjmení</span>
+                            <input class="field-input" type="text" value="${escapeHtml(rec.full_name || '')}" onchange="updateRecordField(${idx}, 'full_name', this.value)">
+                        </div>
+                        <div class="field-group" style="flex:1">
+                            <span class="field-label">Lokalita / Ves</span>
+                            <input class="field-input" type="text" value="${escapeHtml(rec.settlement_orig || '')}" onchange="updateRecordField(${idx}, 'settlement_orig', this.value)">
+                        </div>
+                        <div class="field-group" style="flex:0.8">
+                            <span class="field-label">Folio / Strana</span>
+                            <input class="field-input" type="text" value="${escapeHtml(rec.source_page_folio || '')}" onchange="updateRecordField(${idx}, 'source_page_folio', this.value)">
+                        </div>
+                    </div>
+
+                    <div class="card-row">
+                        <div class="field-group">
+                            <span class="field-label">Role / Povolání</span>
+                            <input class="field-input" type="text" value="${escapeHtml(rec.raw_role || '')}" onchange="updateRecordField(${idx}, 'raw_role', this.value)">
+                        </div>
+                        <div class="field-group">
+                            <span class="field-label">Držba půdy / Grunt</span>
+                            <input class="field-input" type="text" value="${escapeHtml(rec.land_tenure_raw || '')}" onchange="updateRecordField(${idx}, 'land_tenure_raw', this.value)">
+                        </div>
+                    </div>
+
+                    <div class="card-row">
+                        <div class="field-group">
+                            <span class="field-label">Peněžitý úrok (sv. Jiří / sv. Havel)</span>
+                            <input class="field-input" type="text" value="${escapeHtml(rec.money_rent_urok || '')}" onchange="updateRecordField(${idx}, 'money_rent_urok', this.value)">
+                        </div>
+                        <div class="field-group">
+                            <span class="field-label">Robota</span>
+                            <input class="field-input" type="text" value="${escapeHtml(rec.corvee_robota || '')}" onchange="updateRecordField(${idx}, 'corvee_robota', this.value)">
+                        </div>
+                    </div>
+
+                    <div class="card-row">
+                        <div class="field-group">
+                            <span class="field-label">Naturální dávky (slepice, vejce)</span>
+                            <input class="field-input" type="text" value="${escapeHtml(rec.natural_dues || '')}" onchange="updateRecordField(${idx}, 'natural_dues', this.value)">
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateRecordField(idx, field, value) {
+            currentRecords[idx][field] = value;
+            if (field === 'full_name') {
+                const parts = value.trim().split(' ');
+                currentRecords[idx]['first_name'] = parts[0] || '';
+                currentRecords[idx]['last_name'] = parts.slice(1).join(' ') || '';
+            }
+        }
+
+        function addNewRecord() {
+            currentRecords.push({
+                source_file: currentPhoto.rel_path,
+                full_name: 'Nové jméno',
+                first_name: 'Nové',
+                last_name: 'jméno',
+                settlement_orig: currentRecords[0]?.settlement_orig || 'Hořice',
+                source_page_folio: currentRecords[0]?.source_page_folio || '',
+                raw_role: 'soused',
+                land_tenure_raw: 'grunt',
+                money_rent_urok: '',
+                corvee_robota: '',
+                natural_dues: ''
+            });
+            renderRecords();
+            const container = document.getElementById('recordsList');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function deleteRecord(idx) {
+            if (confirm('Opravdu smazat tento řádek?')) {
+                currentRecords.splice(idx, 1);
+                renderRecords();
+            }
+        }
+
+        function saveCurrentRecords() {
+            if (!currentPhoto) return;
+            const statusEl = document.getElementById('saveStatus');
+            statusEl.innerText = 'Ukládám...';
+
+            const isVerified = document.getElementById('checkVerified').checked;
+            currentPhoto.is_verified = isVerified;
+            currentPhoto.record_count = currentRecords.length;
+
+            // 1. Always save in localStorage for instant offline safety
+            const localEdits = JSON.parse(localStorage.getItem('archival_local_records') || '{}');
+            localEdits[currentPhoto.rel_path] = currentRecords;
+            localStorage.setItem('archival_local_records', JSON.stringify(localEdits));
+
+            const verifiedMap = JSON.parse(localStorage.getItem('archival_verified_map') || '{}');
+            verifiedMap[currentPhoto.rel_path] = isVerified;
+            localStorage.setItem('archival_verified_map', JSON.stringify(verifiedMap));
+
+            // Update in-memory allRecords
+            allRecords = allRecords.filter(r => r.source_file !== currentPhoto.rel_path && r.source_file !== currentPhoto.rel_path.replace('/', '\\'));
+            allRecords.push(...currentRecords);
+
+            // 2. If Google Apps Script URL is set, send to Google Sheet!
+            if (googleScriptUrl) {
+                const payload = {
+                    photo_path: currentPhoto.rel_path,
+                    records: currentRecords,
+                    is_verified: isVerified
+                };
+
+                fetch(googleScriptUrl, {
+                    method: 'POST',
+                    mode: 'no-cors', // Standard for Google Apps Script Web App
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).then(() => {
+                    statusEl.innerText = '✓ Uloženo do Google Tabulky a prohlížeče!';
+                    renderPhotoList();
+                    updateStats();
+                    setTimeout(() => { statusEl.innerText = ''; }, 3000);
+                }).catch(err => {
+                    console.error("Google Sheet error:", err);
+                    statusEl.innerText = '✓ Uloženo v prohlížeči (Chyba Google Tabulky)';
+                });
+            } else {
+                statusEl.innerText = '✓ Uloženo v prohlížeči (pro Google Tabulku nastavte URL)';
+                renderPhotoList();
+                updateStats();
+                setTimeout(() => { statusEl.innerText = ''; }, 3000);
+            }
+        }
+
+        function exportDataJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allRecords, null, 2));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", "urbar_verified_export.json");
+            dl.click();
+        }
+
+        /* Image Transform Controls */
+        function updateTransform() {
+            const img = document.getElementById('manuscript-img');
+            img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale}) rotate(${rotation}deg)`;
+        }
+
+        function zoom(factor) {
+            scale *= factor;
+            scale = Math.max(0.2, Math.min(scale, 6.0));
+            updateTransform();
+        }
+
+        function resetZoom() {
+            scale = 0.55;
+            posX = 0;
+            posY = 0;
+            rotation = 0;
+            updateTransform();
+        }
+
+        function rotateImage() {
+            rotation = (rotation + 90) % 360;
+            updateTransform();
+        }
+
+        function toggleContrast() {
+            contrastMode = (contrastMode + 1) % 4;
+            const img = document.getElementById('manuscript-img');
+            img.className = '';
+            if (contrastMode === 1) img.classList.add('high-contrast');
+            if (contrastMode === 2) img.classList.add('inverted');
+            if (contrastMode === 3) img.classList.add('sharpen');
+        }
+
+        function handleWheel(e) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            zoom(delta);
+        }
+
+        function startDrag(e) {
+            isDragging = true;
+            startX = e.clientX - posX;
+            startY = e.clientY - posY;
+            window.addEventListener('mousemove', onDrag);
+            window.addEventListener('mouseup', stopDrag);
+        }
+
+        function onDrag(e) {
+            if (!isDragging) return;
+            posX = e.clientX - startX;
+            posY = e.clientY - startY;
+            updateTransform();
+        }
+
+        function stopDrag() {
+            isDragging = false;
+            window.removeEventListener('mousemove', onDrag);
+            window.removeEventListener('mouseup', stopDrag);
+        }
+
+        function escapeHtml(text) {
+            return String(text || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+    </script>
+</body>
+</html>
