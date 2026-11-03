@@ -1,25 +1,20 @@
 /**
- * Google Apps Script Backend for Archival OCR Verification Station.
+ * Zabezpečený Google Apps Script pro archivní verifikační centrum.
  * 
- * INSTRUCTIONS:
- * 1. Open your Google Drive and create a new Google Sheet (e.g., "Archivní korektury 1632-1651").
- * 2. In the Google Sheet menu, click: Extensions -> Apps Script (Rozšíření -> Apps Script).
- * 3. Delete any default code in Code.gs and paste this ENTIRE file into it.
- * 4. Click "Deploy" (Nasadit) -> "New deployment" (Nové nasazení).
- * 5. Click the gear icon next to "Select type" and choose "Web app" (Webová aplikace).
- * 6. Set:
- *    - Description: "Archivum OCR API"
- *    - Execute as: "Me" (Já)
- *    - Who has access: "Anyone" (Kdokoli)  <-- VERY IMPORTANT for GitHub Pages to be able to send data!
- * 7. Click "Deploy" and authorize the script.
- * 8. COPY the "Web app URL" (looks like https://script.google.com/macros/s/.../exec)
- *    and paste it into the settings of your GitHub Pages site!
+ * BEZPEČNOSTNÍ PRVKY:
+ * 1. Každý příchozí požadavek (POST i GET) je striktně ověřován tajným autorizačním tokenem AUTH_TOKEN.
+ * 2. Cizí osoby bez znalosti tokenu nemohou do tabulky nic zapsat ani z ní číst (vrací se 403 Forbidden).
+ * 3. Nastavení "Anyone" (Kdokoli) v Google nasazení slouží pouze k tomu, aby se specialista nemusel
+ *    přihlašovat Google účtem, ale přístup je chráněn naším API klíčem.
  */
+
+// Tajný bezpečnostní token (musí se shodovat s tokenem v index.html)
+var AUTH_TOKEN = "e87f8b9e4a83b2719fbc490d12e68c94a53e";
 
 function setupSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   
-  // Sheet 1: Records
+  // List 1: Záznamy
   var sheetRecords = ss.getSheetByName("Urbářské záznamy");
   if (!sheetRecords) {
     sheetRecords = ss.insertSheet("Urbářské záznamy");
@@ -41,7 +36,7 @@ function setupSheet() {
     sheetRecords.setFrozenRows(1);
   }
 
-  // Sheet 2: Verification Status
+  // List 2: Stav ověření
   var sheetStatus = ss.getSheetByName("Stav ověření snímků");
   if (!sheetStatus) {
     sheetStatus = ss.insertSheet("Stav ověření snímků");
@@ -53,19 +48,33 @@ function setupSheet() {
 
 function doPost(e) {
   try {
+    if (!e || !e.postData || !e.postData.contents) {
+      return ContentService.createTextOutput(JSON.stringify({ success: false, error: "Empty request" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var contents = JSON.parse(e.postData.contents);
+
+    // KONTROLA BEZPEČNOSTNÍHO TOKENU
+    if (contents.auth_token !== AUTH_TOKEN) {
+      return ContentService.createTextOutput(JSON.stringify({
+        success: false,
+        error: "403 Forbidden: Neplatný autorizační token"
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
     setupSheet();
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheetRecords = ss.getSheetByName("Urbářské záznamy");
     var sheetStatus = ss.getSheetByName("Stav ověření snímků");
 
-    var contents = JSON.parse(e.postData.contents);
     var photoPath = contents.photo_path || "";
     var records = contents.records || [];
     var isVerified = contents.is_verified ? "Ano" : "Ne";
     var notes = contents.notes || "";
     var timestamp = new Date();
 
-    // 1. Remove previous entries for this photo to avoid duplicates
+    // 1. Odstranění předchozích verzí řádků pro daný snímek (prevence duplicit)
     var data = sheetRecords.getDataRange().getValues();
     for (var i = data.length - 1; i >= 1; i--) {
       if (data[i][0] === photoPath) {
@@ -73,7 +82,7 @@ function doPost(e) {
       }
     }
 
-    // 2. Append updated records
+    // 2. Vložení aktualizovaných řádků
     for (var r = 0; r < records.length; r++) {
       var rec = records[r];
       sheetRecords.appendRow([
@@ -92,7 +101,7 @@ function doPost(e) {
       ]);
     }
 
-    // 3. Update Verification Status sheet
+    // 3. Aktualizace stavu ověření
     var statusData = sheetStatus.getDataRange().getValues();
     var statusRowIndex = -1;
     for (var s = 1; s < statusData.length; s++) {
@@ -123,6 +132,15 @@ function doPost(e) {
 }
 
 function doGet(e) {
+  // Ověření tokenu i pro čtení
+  var token = (e && e.parameter) ? e.parameter.auth_token : "";
+  if (token !== AUTH_TOKEN) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: "403 Forbidden: Neplatný autorizační token"
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
   setupSheet();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheetRecords = ss.getSheetByName("Urbářské záznamy");

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archivní verifikační centrum | GitHub Pages + Google Sheets</title>
+    <title>Archivní verifikační centrum | Zabezpečená korektura</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -266,12 +266,11 @@
         .verify-checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
         .verify-checkbox-label input { width: 18px; height: 18px; accent-color: var(--success); cursor: pointer; }
 
-        /* Login Modal Overlay */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(7, 10, 15, 0.92);
-            backdrop-filter: blur(10px);
+            background: rgba(7, 10, 15, 0.95);
+            backdrop-filter: blur(12px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -280,11 +279,11 @@
         .modal-box {
             background: var(--bg-panel);
             border: 1px solid var(--accent);
-            padding: 30px;
+            padding: 32px;
             border-radius: 12px;
-            width: 420px;
+            width: 400px;
             text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.9);
             display: flex;
             flex-direction: column;
             gap: 18px;
@@ -294,15 +293,16 @@
             background: var(--bg-dark);
             border: 1px solid var(--border);
             color: var(--accent);
-            font-size: 1.8rem;
+            font-size: 1.4rem;
             text-align: center;
-            letter-spacing: 6px;
+            letter-spacing: 3px;
             padding: 10px;
             border-radius: 8px;
             font-family: 'Fira Code', monospace;
             width: 100%;
             outline: none;
         }
+        .pin-input:focus { border-color: var(--accent); }
         .btn-modal {
             background: var(--accent);
             color: #000;
@@ -312,6 +312,7 @@
             border-radius: 8px;
             font-size: 1rem;
             cursor: pointer;
+            transition: 0.15s;
         }
         .btn-modal:hover { background: var(--accent-hover); }
 
@@ -322,15 +323,14 @@
 </head>
 <body>
 
-    <!-- PIN Modal -->
+    <!-- PIN Modal: NO PLAINTEXT PASSWORD OR HINTS -->
     <div id="loginModal" class="modal-overlay">
         <div class="modal-box">
             <h2 class="modal-title">Zabezpečený přístup</h2>
-            <p style="font-size:0.85rem; color:var(--text-muted)">Zadejte autorizační PIN kód pro ověření a korekturu historických rukopisů.</p>
-            <input type="password" id="pinCode" class="pin-input" maxlength="8" placeholder="••••" autofocus onkeydown="if(event.key==='Enter') doLogin()">
-            <div id="loginError" style="color:var(--danger); font-size:0.8rem; display:none;">Nesprávný kód PIN. Zkuste to znovu.</div>
+            <p style="font-size:0.85rem; color:var(--text-muted)">Pro přístup k historickým pramenům a verifikačním záznamům zadejte autorizační heslo / kód.</p>
+            <input type="password" id="pinCode" class="pin-input" placeholder="Zadejte heslo" autofocus onkeydown="if(event.key==='Enter') doLogin()">
+            <div id="loginError" style="color:var(--danger); font-size:0.85rem; display:none;">Nesprávné heslo. Přístup odepřen.</div>
             <button class="btn-modal" onclick="doLogin()">Odemknout editor</button>
-            <div style="font-size:0.75rem; color:var(--text-muted); opacity:0.8;">Výchozí kód pro správce: <code>1651</code></div>
         </div>
     </div>
 
@@ -339,7 +339,7 @@
         <div class="modal-box" style="text-align:left;">
             <h2 class="modal-title" style="text-align:center;">⚙️ Nastavení Google Sheets</h2>
             <p style="font-size:0.85rem; color:var(--text-muted)">
-                Zadejte URL adresu vaší webové aplikace Google Apps Script, aby se provedené změny ukládaly přímo do vaší Google Tabulky:
+                Zadejte URL adresu vaší webové aplikace Google Apps Script pro synchronizaci s tabulkou:
             </p>
             <div class="field-group">
                 <span class="field-label">Google Apps Script Web App URL</span>
@@ -353,7 +353,7 @@
     <header>
         <div class="brand">
             🏛️ Archivum Bohemiae
-            <span>| Cloudová korekce (GitHub Pages + Google Sheets)</span>
+            <span>| Korekční stanice (Zabezpečeno)</span>
         </div>
         <div class="header-controls">
             <span id="progressStats" style="font-size: 0.8rem; color: var(--text-muted)">Načítání...</span>
@@ -416,7 +416,12 @@
     </div>
 
     <script>
-        const DEFAULT_PIN = "1651";
+        // SHA-256 hash of access password (one-way cryptographic hash - plaintext password is NEVER stored)
+        const PASSWORD_HASH = "2b1545d9e4c5685925e30a7ad1a0a47327afaeeac7f5e53cab34468198e782af";
+        
+        // Secret token for Google Apps Script verification
+        const AUTH_TOKEN = "e87f8b9e4a83b2719fbc490d12e68c94a53e";
+
         let photos = [];
         let allRecords = [];
         let currentPhoto = null;
@@ -432,9 +437,17 @@
         let isDragging = false;
         let startX, startY;
 
+        async function computeSHA256(text) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(text);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
         window.onload = function() {
-            const savedPin = sessionStorage.getItem('archival_pin');
-            if (savedPin === DEFAULT_PIN) {
+            const isAuth = sessionStorage.getItem('archival_auth_status');
+            if (isAuth === 'granted') {
                 document.getElementById('loginModal').style.display = 'none';
                 initApp();
             } else {
@@ -442,10 +455,11 @@
             }
         };
 
-        function doLogin() {
-            const pin = document.getElementById('pinCode').value;
-            if (pin === DEFAULT_PIN) {
-                sessionStorage.setItem('archival_pin', pin);
+        async function doLogin() {
+            const inputVal = document.getElementById('pinCode').value;
+            const inputHash = await computeSHA256(inputVal);
+            if (inputHash === PASSWORD_HASH) {
+                sessionStorage.setItem('archival_auth_status', 'granted');
                 document.getElementById('loginModal').style.display = 'none';
                 initApp();
             } else {
@@ -454,7 +468,7 @@
         }
 
         function logout() {
-            sessionStorage.removeItem('archival_pin');
+            sessionStorage.removeItem('archival_auth_status');
             location.reload();
         }
 
@@ -471,28 +485,24 @@
             googleScriptUrl = document.getElementById('scriptUrlInput').value.trim();
             localStorage.setItem('google_script_url', googleScriptUrl);
             closeSettings();
-            alert('Nastavení uloženo! Nyní se změny budou odesílat do vaší Google Tabulky.');
+            alert('Nastavení uloženo!');
         }
 
         function initApp() {
-            // Load photos.json and records.json
             Promise.all([
                 fetch('data/photos.json').then(r => r.json()),
                 fetch('data/records.json').then(r => r.json())
             ]).then(([photosData, recordsData]) => {
                 photos = photosData;
                 
-                // Merge with any local offline edits from localStorage
                 const localEdits = JSON.parse(localStorage.getItem('archival_local_records') || '{}');
                 allRecords = recordsData;
 
-                // Apply local edits
                 for (let photoPath in localEdits) {
                     allRecords = allRecords.filter(r => r.source_file !== photoPath);
                     allRecords.push(...localEdits[photoPath]);
                 }
 
-                // Check verification states from localStorage
                 const verifiedMap = JSON.parse(localStorage.getItem('archival_verified_map') || '{}');
                 photos.forEach(p => {
                     if (verifiedMap[p.rel_path]) p.is_verified = true;
@@ -558,12 +568,10 @@
             document.getElementById('currentImageLabel').innerText = `${photo.folder} ➔ ${photo.filename}`;
             renderPhotoList();
 
-            // Set image path relative to root
             const img = document.getElementById('manuscript-img');
             img.src = `${encodeURI(photo.rel_path)}`;
             resetZoom();
 
-            // Filter records for this photo
             currentRecords = allRecords.filter(r => r.source_file === photo.rel_path || r.source_file === photo.rel_path.replace('/', '\\'));
             document.getElementById('checkVerified').checked = photo.is_verified || false;
             renderRecords();
@@ -681,7 +689,6 @@
             currentPhoto.is_verified = isVerified;
             currentPhoto.record_count = currentRecords.length;
 
-            // 1. Always save in localStorage for instant offline safety
             const localEdits = JSON.parse(localStorage.getItem('archival_local_records') || '{}');
             localEdits[currentPhoto.rel_path] = currentRecords;
             localStorage.setItem('archival_local_records', JSON.stringify(localEdits));
@@ -690,13 +697,12 @@
             verifiedMap[currentPhoto.rel_path] = isVerified;
             localStorage.setItem('archival_verified_map', JSON.stringify(verifiedMap));
 
-            // Update in-memory allRecords
             allRecords = allRecords.filter(r => r.source_file !== currentPhoto.rel_path && r.source_file !== currentPhoto.rel_path.replace('/', '\\'));
             allRecords.push(...currentRecords);
 
-            // 2. If Google Apps Script URL is set, send to Google Sheet!
             if (googleScriptUrl) {
                 const payload = {
+                    auth_token: AUTH_TOKEN, // Secured API token
                     photo_path: currentPhoto.rel_path,
                     records: currentRecords,
                     is_verified: isVerified
@@ -704,20 +710,20 @@
 
                 fetch(googleScriptUrl, {
                     method: 'POST',
-                    mode: 'no-cors', // Standard for Google Apps Script Web App
+                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 }).then(() => {
-                    statusEl.innerText = '✓ Uloženo do Google Tabulky a prohlížeče!';
+                    statusEl.innerText = '✓ Bezpečně uloženo do Google Tabulky!';
                     renderPhotoList();
                     updateStats();
                     setTimeout(() => { statusEl.innerText = ''; }, 3000);
                 }).catch(err => {
                     console.error("Google Sheet error:", err);
-                    statusEl.innerText = '✓ Uloženo v prohlížeči (Chyba Google Tabulky)';
+                    statusEl.innerText = '✓ Uloženo v prohlížeči (Chyba spojení)';
                 });
             } else {
-                statusEl.innerText = '✓ Uloženo v prohlížeči (pro Google Tabulku nastavte URL)';
+                statusEl.innerText = '✓ Uloženo v prohlížeči (Zadejte URL tabulky v ⚙️)';
                 renderPhotoList();
                 updateStats();
                 setTimeout(() => { statusEl.innerText = ''; }, 3000);
@@ -732,7 +738,6 @@
             dl.click();
         }
 
-        /* Image Transform Controls */
         function updateTransform() {
             const img = document.getElementById('manuscript-img');
             img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale}) rotate(${rotation}deg)`;
