@@ -168,8 +168,8 @@
 
         /* Middle: Image Viewer */
         .viewer-container {
-            flex: 1.2;
-            min-width: 320px;
+            flex: 2;
+            min-width: 450px;
             display: flex;
             flex-direction: column;
             background: #080b10;
@@ -214,18 +214,21 @@
         .canvas-area:active { cursor: grabbing; }
         #manuscript-img {
             max-width: none;
+            max-height: none;
             position: absolute;
             transform-origin: center center;
             transition: filter 0.2s;
             user-select: none;
             box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: high-quality;
         }
 
         /* Right: Editor Form Container */
         .editor-container {
-            flex: 1.3;
+            width: 440px;
             min-width: 380px;
-            max-width: 620px;
+            max-width: 480px;
             background: var(--bg-panel);
             display: flex;
             flex-direction: column;
@@ -657,10 +660,12 @@
         <div class="viewer-container mobile-active" id="viewerPanel">
             <div class="viewer-toolbar">
                 <span id="currentImageLabel" style="font-weight:600; font-size:0.8rem; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:260px;">Vyberte fotografii</span>
-                <div style="margin-left:auto; display:flex; gap:6px; flex-wrap:wrap;">
-                    <button class="tool-btn" onclick="zoom(1.25)">🔍 +</button>
-                    <button class="tool-btn" onclick="zoom(0.8)">🔍 −</button>
-                    <button class="tool-btn" onclick="resetZoom()">⟲ Reset</button>
+                <div style="margin-left:auto; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                    <button class="tool-btn" onclick="zoom(1.2)">🔍 +</button>
+                    <button class="tool-btn" onclick="zoom(0.83)">🔍 −</button>
+                    <button class="tool-btn" onclick="fitImageToScreen()" title="Přizpůsobit celou stránku na výšku okna">📐 Celá stránka</button>
+                    <button class="tool-btn" onclick="fitImageWidth()" title="Přizpůsobit na šířku okna pro čtení textu">↔ Na šířku</button>
+                    <button class="tool-btn" onclick="resetZoom()">⟲ 100%</button>
                     <button class="tool-btn" onclick="rotateImage()">↻ 90°</button>
                     <button class="tool-btn" onclick="toggleContrast()">🌓 Kontrast</button>
                 </div>
@@ -962,8 +967,10 @@
             renderPhotoList();
 
             const img = document.getElementById('manuscript-img');
+            img.onload = function() {
+                fitImageToScreen();
+            };
             img.src = `${encodeURI(photo.rel_path)}`;
-            resetZoom();
 
             currentRecords = allRecords.filter(r => r.source_file === photo.rel_path || r.source_file === photo.rel_path.replace('/', '\\'));
             document.getElementById('checkVerified').checked = photo.is_verified || false;
@@ -1271,12 +1278,43 @@
 
         function zoom(factor) {
             scale *= factor;
-            scale = Math.max(0.2, Math.min(scale, 6.0));
+            scale = Math.max(0.08, Math.min(scale, 4.0));
+            updateTransform();
+        }
+
+        function fitImageToScreen() {
+            const canvas = document.getElementById('canvasArea');
+            const img = document.getElementById('manuscript-img');
+            if (!img.naturalWidth || !img.naturalHeight) return;
+
+            const cW = canvas.clientWidth || 600;
+            const cH = canvas.clientHeight || 700;
+
+            // Fit whole page with 16px padding
+            const scaleX = (cW - 32) / img.naturalWidth;
+            const scaleY = (cH - 32) / img.naturalHeight;
+            scale = Math.min(scaleX, scaleY);
+            scale = Math.max(0.1, Math.min(scale, 2.0));
+            posX = 0;
+            posY = 0;
+            updateTransform();
+        }
+
+        function fitImageWidth() {
+            const canvas = document.getElementById('canvasArea');
+            const img = document.getElementById('manuscript-img');
+            if (!img.naturalWidth) return;
+
+            const cW = canvas.clientWidth || 600;
+            scale = (cW - 24) / img.naturalWidth;
+            scale = Math.max(0.1, Math.min(scale, 2.5));
+            posX = 0;
+            posY = 0;
             updateTransform();
         }
 
         function resetZoom() {
-            scale = 0.55;
+            scale = 1.0;
             posX = 0;
             posY = 0;
             updateTransform();
