@@ -18,6 +18,7 @@
             --text-muted: #94a3b8;
             --success: #10b981;
             --danger: #ef4444;
+            --danger-bg: #451a1a;
             --warning: #f59e0b;
         }
 
@@ -99,69 +100,73 @@
             border-radius: 4px;
             font-size: 0.75rem;
             cursor: pointer;
-            flex: 1;
-            text-align: center;
+            transition: 0.15s;
         }
-        .tab-btn.active { background: var(--border); color: var(--text-main); font-weight: 600; }
-        .photo-list { overflow-y: auto; flex: 1; }
+        .tab-btn.active, .tab-btn:hover { background: var(--bg-card); color: var(--accent); border-color: var(--accent); }
+
+        .photo-list { flex: 1; overflow-y: auto; padding: 6px; }
         .photo-item {
-            padding: 10px 14px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 10px 12px;
+            border-radius: 6px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 0.85rem;
-            transition: background 0.15s;
+            margin-bottom: 4px;
+            border: 1px solid transparent;
+            transition: 0.15s;
         }
         .photo-item:hover { background: var(--bg-card); }
-        .photo-item.active { background: rgba(212, 175, 55, 0.15); border-left: 3px solid var(--accent); }
+        .photo-item.active { background: var(--bg-card); border-color: var(--accent); }
         .photo-meta { display: flex; flex-direction: column; gap: 2px; }
-        .photo-title { font-weight: 600; color: #fff; }
-        .photo-subtitle { font-size: 0.75rem; color: var(--text-muted); }
-        .badge { font-size: 0.7rem; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
-        .badge-verified { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
-        .badge-pending { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+        .photo-title { font-size: 0.85rem; font-weight: 600; color: #fff; }
+        .photo-subtitle { font-size: 0.72rem; color: var(--text-muted); }
+        .badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .badge-verified { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
+        .badge-pending { background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid var(--warning); }
 
         .viewer-container {
-            flex: 1;
-            background: #090c10;
-            position: relative;
+            flex: 1.1;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            background: #080b10;
             border-right: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
         }
         .viewer-toolbar {
-            background: rgba(23, 31, 44, 0.85);
-            backdrop-filter: blur(8px);
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
             padding: 8px 16px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             z-index: 10;
-            border-bottom: 1px solid var(--border);
         }
         .tool-btn {
             background: var(--bg-card);
             border: 1px solid var(--border);
             color: var(--text-main);
             padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.8rem;
+            border-radius: 5px;
             cursor: pointer;
+            font-size: 0.8rem;
             display: flex;
             align-items: center;
             gap: 6px;
-            transition: 0.15s;
-            text-decoration: none;
         }
-        .tool-btn:hover { background: var(--border); border-color: var(--accent); }
+        .tool-btn:hover { border-color: var(--accent); color: var(--accent); }
+
         .canvas-area {
             flex: 1;
             position: relative;
-            cursor: grab;
             overflow: hidden;
+            cursor: grab;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -171,18 +176,17 @@
             max-width: none;
             position: absolute;
             transform-origin: center center;
-            transition: filter 0.2s ease;
+            transition: filter 0.2s;
             user-select: none;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
         }
 
         .editor-container {
-            width: 580px;
+            width: 490px;
             background: var(--bg-panel);
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
-            overflow: hidden;
         }
         .editor-header {
             padding: 12px 16px;
@@ -190,19 +194,19 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: var(--bg-card);
+            gap: 8px;
         }
-        .editor-title { font-size: 0.95rem; font-weight: 700; color: var(--accent); }
-        .editor-actions { display: flex; align-items: center; gap: 8px; }
+        .editor-title { font-weight: 700; font-size: 0.95rem; color: #fff; }
+        .editor-actions { display: flex; gap: 6px; flex-wrap: wrap; }
         .btn-save {
             background: var(--accent);
             color: #000;
             border: none;
             font-weight: 700;
-            padding: 8px 16px;
+            padding: 8px 14px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             transition: 0.2s;
         }
         .btn-save:hover { background: var(--accent-hover); transform: translateY(-1px); }
@@ -210,14 +214,25 @@
             background: var(--bg-dark);
             color: var(--text-main);
             border: 1px solid var(--border);
-            padding: 8px 12px;
+            padding: 8px 10px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
         }
         .btn-add:hover { border-color: var(--accent-blue); }
+        .btn-clear-page {
+            background: var(--danger-bg);
+            color: #fca5a5;
+            border: 1px solid rgba(239,68,68,0.4);
+            padding: 8px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.78rem;
+        }
+        .btn-clear-page:hover { border-color: var(--danger); background: rgba(239,68,68,0.25); color: #fff; }
 
-        .records-scroll { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+        .records-scroll { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 14px; }
+        
         .record-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -227,33 +242,107 @@
             flex-direction: column;
             gap: 10px;
             position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
-        .card-row { display: flex; gap: 10px; }
-        .field-group { flex: 1; display: flex; flex-direction: column; gap: 4px; }
-        .field-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+        .record-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .record-card-num {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn-delete-person {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.15s;
+        }
+        .btn-delete-person:hover { background: #dc2626; transform: scale(1.02); }
+
+        .card-row { display: flex; gap: 8px; }
+        .field-group { flex: 1; display: flex; flex-direction: column; gap: 3px; position: relative; }
+        .field-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.4px; }
         .field-input {
             background: var(--bg-dark);
             border: 1px solid var(--border);
             color: #fff;
-            padding: 6px 10px;
+            padding: 6px 8px;
             border-radius: 5px;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             outline: none;
             font-family: inherit;
         }
         .field-input:focus { border-color: var(--accent); }
-        .btn-del-row {
-            position: absolute;
-            top: 8px;
-            right: 8px;
+
+        .section-divider {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .section-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .custom-fields-area {
+            background: rgba(0,0,0,0.25);
+            border: 1px dashed var(--border);
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .custom-field-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-remove-custom {
             background: transparent;
             border: none;
-            color: #ef4444;
+            color: var(--danger);
             cursor: pointer;
-            font-size: 1.1rem;
-            opacity: 0.6;
+            font-size: 1rem;
+            padding: 2px 6px;
         }
-        .btn-del-row:hover { opacity: 1; }
+        .btn-add-custom {
+            background: transparent;
+            border: 1px dashed var(--accent);
+            color: var(--accent);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            cursor: pointer;
+            margin-top: 4px;
+            align-self: flex-start;
+        }
+        .btn-add-custom:hover { background: rgba(212,175,55,0.1); }
 
         .editor-footer {
             padding: 12px 16px;
@@ -263,8 +352,8 @@
             align-items: center;
             justify-content: space-between;
         }
-        .verify-checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
-        .verify-checkbox-label input { width: 18px; height: 18px; accent-color: var(--success); cursor: pointer; }
+        .verify-checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+        .verify-checkbox-label input { width: 17px; height: 17px; accent-color: var(--success); cursor: pointer; }
 
         .modal-overlay {
             position: fixed;
@@ -279,16 +368,18 @@
         .modal-box {
             background: var(--bg-panel);
             border: 1px solid var(--accent);
-            padding: 32px;
+            padding: 28px;
             border-radius: 12px;
-            width: 400px;
+            width: 440px;
+            max-height: 85vh;
+            overflow-y: auto;
             text-align: center;
             box-shadow: 0 25px 60px rgba(0,0,0,0.9);
             display: flex;
             flex-direction: column;
-            gap: 18px;
+            gap: 16px;
         }
-        .modal-title { font-family: 'Cinzel', serif; color: var(--accent); font-size: 1.4rem; }
+        .modal-title { font-family: 'Cinzel', serif; color: var(--accent); font-size: 1.3rem; }
         .pin-input {
             background: var(--bg-dark);
             border: 1px solid var(--border);
@@ -308,13 +399,35 @@
             color: #000;
             font-weight: 700;
             border: none;
-            padding: 12px;
+            padding: 10px;
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             cursor: pointer;
             transition: 0.15s;
         }
         .btn-modal:hover { background: var(--accent-hover); }
+
+        .category-list-box {
+            text-align: left;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px;
+            max-height: 250px;
+            overflow-y: auto;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .category-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.03);
+        }
 
         .high-contrast { filter: contrast(160%) brightness(110%); }
         .inverted { filter: invert(90%) contrast(150%); }
@@ -323,14 +436,31 @@
 </head>
 <body>
 
-    <!-- PIN Modal: NO PLAINTEXT PASSWORD OR HINTS -->
+    <!-- PIN Modal -->
     <div id="loginModal" class="modal-overlay">
         <div class="modal-box">
             <h2 class="modal-title">Zabezpečený přístup</h2>
-            <p style="font-size:0.85rem; color:var(--text-muted)">Pro přístup k historickým pramenům a verifikačním záznamům zadejte autorizační heslo / kód.</p>
+            <p style="font-size:0.85rem; color:var(--text-muted)">Pro přístup k historickým pramenům a verifikačním záznamům zadejte autorizační kód (PIN).</p>
             <input type="password" id="pinCode" class="pin-input" placeholder="Zadejte heslo" autofocus onkeydown="if(event.key==='Enter') doLogin()">
             <div id="loginError" style="color:var(--danger); font-size:0.85rem; display:none;">Nesprávné heslo. Přístup odepřen.</div>
             <button class="btn-modal" onclick="doLogin()">Odemknout editor</button>
+        </div>
+    </div>
+
+    <!-- Category Catalog Manager Modal -->
+    <div id="categoryModal" class="modal-overlay" style="display:none;">
+        <div class="modal-box" style="text-align:left;">
+            <h2 class="modal-title" style="text-align:center;">📋 Seznam kategorií a polí</h2>
+            <p style="font-size:0.82rem; color:var(--text-muted)">
+                Celkový katalog všech standardních i doplňkových kategorií pro hromadné hledání a kontrolu duplicit.
+            </p>
+            <div class="category-list-box" id="categoryCatalogList"></div>
+            
+            <div style="display:flex; gap:8px; margin-top:8px;">
+                <input type="text" id="newCategoryInput" class="field-input" placeholder="Přidat novou kategorii do katalogu..." style="flex:1;">
+                <button class="btn-add" onclick="addCategoryToCatalog()">+ Přidat</button>
+            </div>
+            <button class="btn-modal" onclick="closeCategoryModal()">Hotovo</button>
         </div>
     </div>
 
@@ -357,6 +487,7 @@
         </div>
         <div class="header-controls">
             <span id="progressStats" style="font-size: 0.8rem; color: var(--text-muted)">Načítání...</span>
+            <button class="tool-btn" onclick="openCategoryModal()">📋 Kategorie polí</button>
             <button class="tool-btn" onclick="openSettings()">⚙️ Google Sheet</button>
             <button class="tool-btn" onclick="exportDataJSON()">📥 Export JSON</button>
             <button class="tool-btn" onclick="logout()">🔒 Zamknout</button>
@@ -396,6 +527,7 @@
             <div class="editor-header">
                 <div class="editor-title" id="editorTitle">Záznamy na stránce</div>
                 <div class="editor-actions">
+                    <button class="btn-clear-page" title="Vymazat všechny osoby z této stránky (např. prázdná či pouze objekty)" onclick="clearPageRecords()">🧹 Bez osob</button>
                     <button class="btn-add" onclick="addNewRecord()">+ Přidat osobu</button>
                     <button class="btn-save" onclick="saveCurrentRecords()">💾 Uložit změny</button>
                 </div>
@@ -416,18 +548,41 @@
     </div>
 
     <script>
-        // SHA-256 hash of access password (one-way cryptographic hash - plaintext password is NEVER stored)
         const PASSWORD_HASH = "2b1545d9e4c5685925e30a7ad1a0a47327afaeeac7f5e53cab34468198e782af";
-        
-        // Secret token for Google Apps Script verification
         const AUTH_TOKEN = "e87f8b9e4a83b2719fbc490d12e68c94a53e";
+
+        // Globální katalog známých kategorií pro zabránění duplicitám
+        let categoryCatalog = JSON.parse(localStorage.getItem('archival_category_catalog') || 'null');
+        if (!categoryCatalog) {
+            categoryCatalog = [
+                { key: "first_name", label: "Křestní jméno", type: "standard" },
+                { key: "last_name", label: "Příjmení / Přízvisko", type: "standard" },
+                { key: "settlement_orig", label: "Lokalita / Ves", type: "standard" },
+                { key: "source_page_folio", label: "Folio / Strana", type: "standard" },
+                { key: "raw_role", label: "Role / Povolání", type: "standard" },
+                { key: "social_status", label: "Společenský stav", type: "standard" },
+                { key: "land_tenure_raw", label: "Držba půdy / Grunt", type: "standard" },
+                { key: "rent_george", label: "Úrok na sv. Jiří", type: "standard" },
+                { key: "rent_gallus", label: "Úrok na sv. Havla", type: "standard" },
+                { key: "corvee_robota", label: "Robota", type: "standard" },
+                { key: "dues_chickens", label: "Slepice (ks)", type: "standard" },
+                { key: "dues_eggs", label: "Vejce (ks)", type: "standard" },
+                { key: "dues_grain", label: "Oves / Obilí", type: "standard" },
+                { key: "dues_other", label: "Ostatní naturálie", type: "standard" },
+                { key: "birth_date", label: "Datum narození / křtu", type: "standard" },
+                { key: "marriage_date", label: "Datum sňatku", type: "standard" },
+                { key: "death_date", label: "Datum úmrtí / pohřbu", type: "standard" },
+                { key: "residence_info", label: "Místo a datum pobytu", type: "standard" },
+                { key: "notes", label: "Poznámky k osobě", type: "standard" }
+            ];
+            localStorage.setItem('archival_category_catalog', JSON.stringify(categoryCatalog));
+        }
 
         let photos = [];
         let allRecords = [];
         let currentPhoto = null;
         let currentRecords = [];
         let folderFilter = 'all';
-        // Default Google Apps Script URL pre-configured
         const DEFAULT_GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8sBvGBs1tlFGAyon4si2zZQ_VseR6t17Xdc5V2OzKfNK95hbHW_ttnRWlTIcotXYm/exec";
         let googleScriptUrl = localStorage.getItem('google_script_url') || DEFAULT_GOOGLE_SCRIPT_URL;
 
@@ -448,29 +603,30 @@
         }
 
         window.onload = function() {
-            const isAuth = sessionStorage.getItem('archival_auth_status');
-            if (isAuth === 'granted') {
+            if (sessionStorage.getItem('auth_valid') === 'true') {
                 document.getElementById('loginModal').style.display = 'none';
                 initApp();
-            } else {
-                document.getElementById('loginModal').style.display = 'flex';
             }
         };
 
         async function doLogin() {
-            const inputVal = document.getElementById('pinCode').value;
-            const inputHash = await computeSHA256(inputVal);
-            if (inputHash === PASSWORD_HASH) {
-                sessionStorage.setItem('archival_auth_status', 'granted');
+            const pin = document.getElementById('pinCode').value;
+            const err = document.getElementById('loginError');
+            const hash = await computeSHA256(pin);
+
+            if (hash === PASSWORD_HASH) {
+                sessionStorage.setItem('auth_valid', 'true');
                 document.getElementById('loginModal').style.display = 'none';
                 initApp();
             } else {
-                document.getElementById('loginError').style.display = 'block';
+                err.style.display = 'block';
+                document.getElementById('pinCode').value = '';
+                document.getElementById('pinCode').focus();
             }
         }
 
         function logout() {
-            sessionStorage.removeItem('archival_auth_status');
+            sessionStorage.removeItem('auth_valid');
             location.reload();
         }
 
@@ -478,40 +634,86 @@
             document.getElementById('scriptUrlInput').value = googleScriptUrl;
             document.getElementById('settingsModal').style.display = 'flex';
         }
-
-        function closeSettings() {
-            document.getElementById('settingsModal').style.display = 'none';
+        function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
+        function saveSettings() {
+            const url = document.getElementById('scriptUrlInput').value.trim();
+            localStorage.setItem('google_script_url', url);
+            googleScriptUrl = url;
+            closeSettings();
+            alert('Nastavení Google Sheets uloženo!');
         }
 
-        function saveSettings() {
-            googleScriptUrl = document.getElementById('scriptUrlInput').value.trim();
-            localStorage.setItem('google_script_url', googleScriptUrl);
-            closeSettings();
-            alert('Nastavení uloženo!');
+        function openCategoryModal() {
+            renderCategoryCatalog();
+            document.getElementById('categoryModal').style.display = 'flex';
+        }
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').style.display = 'none';
+        }
+
+        function renderCategoryCatalog() {
+            const container = document.getElementById('categoryCatalogList');
+            container.innerHTML = '';
+            categoryCatalog.forEach((cat, idx) => {
+                const item = document.createElement('div');
+                item.className = 'category-item';
+                item.innerHTML = `
+                    <span><strong>${escapeHtml(cat.label)}</strong> <span style="color:var(--text-muted); font-size:0.75rem;">(${cat.key})</span></span>
+                    <span style="font-size:0.7rem; color:${cat.type==='standard'?'var(--accent)':'var(--success)'};">${cat.type==='standard'?'Základní':'Vlastní'}</span>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function addCategoryToCatalog() {
+            const input = document.getElementById('newCategoryInput');
+            const val = input.value.trim();
+            if (!val) return;
+            
+            // Kontrola duplicity
+            const exists = categoryCatalog.some(c => c.label.toLowerCase() === val.toLowerCase());
+            if (exists) {
+                alert('Tato kategorie již v katalogu existuje! (Ochrana proti duplicitám)');
+                return;
+            }
+
+            const key = 'custom_' + val.toLowerCase().replace(/[^a-z0-9]/gi, '_');
+            categoryCatalog.push({ key: key, label: val, type: 'custom' });
+            localStorage.setItem('archival_category_catalog', JSON.stringify(categoryCatalog));
+            input.value = '';
+            renderCategoryCatalog();
         }
 
         function initApp() {
+            let googleDataPromise = Promise.resolve([]);
+            if (googleScriptUrl) {
+                googleDataPromise = fetch(`${googleScriptUrl}?auth_token=${AUTH_TOKEN}`)
+                    .then(r => r.json())
+                    .catch(err => {
+                        console.warn("Could not fetch remote Google Sheets data:", err);
+                        return [];
+                    });
+            }
+
             Promise.all([
                 fetch('data/photos.json').then(r => r.json()),
                 fetch('data/records.json').then(r => r.json()),
-                googleScriptUrl ? fetch(googleScriptUrl + '?auth_token=' + encodeURIComponent(AUTH_TOKEN)).then(r => r.json()).catch(() => []) : Promise.resolve([])
+                googleDataPromise
             ]).then(([photosData, recordsData, googleData]) => {
                 photos = photosData;
                 allRecords = recordsData;
 
-                // Merge verified edits from Google Sheets
                 if (Array.isArray(googleData) && googleData.length > 0) {
                     const modifiedPhotos = new Set(googleData.map(g => g.source_file));
-                    allRecords = allRecords.filter(r => !modifiedPhotos.has(r.source_file) && !modifiedPhotos.has(r.source_file.replace('/', '\\\\')));
+                    allRecords = allRecords.filter(r => !modifiedPhotos.has(r.source_file) && !modifiedPhotos.has(r.source_file.replace('/', '\\')));
                     allRecords.push(...googleData);
                     
                     googleData.forEach(g => {
-                        const p = photos.find(ph => ph.rel_path === g.source_file || ph.rel_path === g.source_file.replace('\\\\', '/'));
+                        const p = photos.find(ph => ph.rel_path === g.source_file || ph.rel_path === g.source_file.replace('\\', '/'));
                         if (p && g.is_verified) p.is_verified = true;
                     });
                 }
 
-                // Merge with any offline edits from localStorage
                 const localEdits = JSON.parse(localStorage.getItem('archival_local_records') || '{}');
                 for (let photoPath in localEdits) {
                     allRecords = allRecords.filter(r => r.source_file !== photoPath);
@@ -521,7 +723,7 @@
                 const verifiedMap = JSON.parse(localStorage.getItem('archival_verified_map') || '{}');
                 photos.forEach(p => {
                     if (verifiedMap[p.rel_path]) p.is_verified = true;
-                    p.record_count = allRecords.filter(r => r.source_file === p.rel_path || r.source_file === p.rel_path.replace('/', '\\\\')).length;
+                    p.record_count = allRecords.filter(r => r.source_file === p.rel_path || r.source_file === p.rel_path.replace('/', '\\')).length;
                 });
 
                 renderPhotoList();
@@ -559,7 +761,7 @@
                 item.onclick = () => selectPhoto(p);
 
                 const badgeClass = p.is_verified ? 'badge-verified' : 'badge-pending';
-                const badgeText = p.is_verified ? '✓ Ověřeno' : `${p.record_count} řádků`;
+                const badgeText = p.is_verified ? '✓ Ověřeno' : `${p.record_count} osob`;
 
                 item.innerHTML = `
                     <div class="photo-meta">
@@ -599,27 +801,47 @@
 
             if (currentRecords.length === 0) {
                 container.innerHTML = `
-                    <div style="text-align:center; padding:30px; color:var(--text-muted); font-size:0.85rem;">
-                        Pro tento snímek zatím není zadán žádný řádek.<br><br>
-                        <button class="btn-add" onclick="addNewRecord()">+ Přidat první osobu</button>
+                    <div style="text-align:center; padding:35px 20px; color:var(--text-muted); font-size:0.85rem;">
+                        <span style="font-size:1.8rem; display:block; margin-bottom:10px;">📜</span>
+                        Na této stránce nejsou evidovány žádné osoby (např. titulní list, desky či hospodářské objekty).<br><br>
+                        <button class="btn-add" onclick="addNewRecord()">+ Přidat osobu na tuto stránku</button>
                     </div>
                 `;
                 return;
             }
 
             currentRecords.forEach((rec, idx) => {
+                if (!rec.custom_fields) rec.custom_fields = {};
                 const card = document.createElement('div');
                 card.className = 'record-card';
-                card.innerHTML = `
-                    <button class="btn-del-row" title="Smazat záznam" onclick="deleteRecord(${idx})">&times;</button>
-                    <div class="card-row">
-                        <div class="field-group" style="flex:2">
-                            <span class="field-label">Jméno a Příjmení</span>
-                            <input class="field-input" type="text" value="${escapeHtml(rec.full_name || '')}" onchange="updateRecordField(${idx}, 'full_name', this.value)">
+
+                // Render custom field tags
+                let customFieldsHtml = '';
+                for (let k in rec.custom_fields) {
+                    customFieldsHtml += `
+                        <div class="custom-field-row">
+                            <span style="font-size:0.75rem; font-weight:600; color:var(--accent); min-width:110px;">${escapeHtml(k)}:</span>
+                            <input class="field-input" style="flex:1;" type="text" value="${escapeHtml(rec.custom_fields[k] || '')}" onchange="updateCustomFieldValue(${idx}, '${escapeHtml(k)}', this.value)">
+                            <button class="btn-remove-custom" title="Odebrat toto pole" onclick="removeCustomField(${idx}, '${escapeHtml(k)}')">&times;</button>
                         </div>
-                        <div class="field-group" style="flex:1">
-                            <span class="field-label">Lokalita / Ves</span>
-                            <input class="field-input" type="text" value="${escapeHtml(rec.settlement_orig || '')}" onchange="updateRecordField(${idx}, 'settlement_orig', this.value)">
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="record-card-header">
+                        <span class="record-card-num">Osoba #${idx + 1}</span>
+                        <button class="btn-delete-person" onclick="deleteRecord(${idx})">🗑️ Smazat osobu</button>
+                    </div>
+
+                    <!-- 1. Jméno a lokalita -->
+                    <div class="card-row">
+                        <div class="field-group" style="flex:1.2">
+                            <span class="field-label">Křestní jméno</span>
+                            <input class="field-input" type="text" placeholder="např. Jan" value="${escapeHtml(rec.first_name || '')}" onchange="updateRecordName(${idx}, 'first_name', this.value)">
+                        </div>
+                        <div class="field-group" style="flex:1.5">
+                            <span class="field-label">Příjmení / Přízvisko</span>
+                            <input class="field-input" type="text" placeholder="např. Švamberk" value="${escapeHtml(rec.last_name || '')}" onchange="updateRecordName(${idx}, 'last_name', this.value)">
                         </div>
                         <div class="field-group" style="flex:0.8">
                             <span class="field-label">Folio / Strana</span>
@@ -628,60 +850,168 @@
                     </div>
 
                     <div class="card-row">
-                        <div class="field-group">
-                            <span class="field-label">Role / Povolání</span>
-                            <input class="field-input" type="text" value="${escapeHtml(rec.raw_role || '')}" onchange="updateRecordField(${idx}, 'raw_role', this.value)">
+                        <div class="field-group" style="flex:1.5">
+                            <span class="field-label">Lokalita / Ves</span>
+                            <input class="field-input" type="text" value="${escapeHtml(rec.settlement_orig || '')}" onchange="updateRecordField(${idx}, 'settlement_orig', this.value)">
                         </div>
-                        <div class="field-group">
+                        <div class="field-group" style="flex:1">
+                            <span class="field-label">Role / Povolání</span>
+                            <input class="field-input" type="text" placeholder="sedlák, chalupník..." value="${escapeHtml(rec.raw_role || '')}" onchange="updateRecordField(${idx}, 'raw_role', this.value)">
+                        </div>
+                        <div class="field-group" style="flex:1">
                             <span class="field-label">Držba půdy / Grunt</span>
-                            <input class="field-input" type="text" value="${escapeHtml(rec.land_tenure_raw || '')}" onchange="updateRecordField(${idx}, 'land_tenure_raw', this.value)">
+                            <input class="field-input" type="text" placeholder="celý lán, chalupa..." value="${escapeHtml(rec.land_tenure_raw || '')}" onchange="updateRecordField(${idx}, 'land_tenure_raw', this.value)">
                         </div>
                     </div>
 
+                    <!-- 2. Rozdělené platby a naturálie -->
+                    <div class="section-divider">Platby a naturální dávky</div>
                     <div class="card-row">
                         <div class="field-group">
-                            <span class="field-label">Peněžitý úrok (sv. Jiří / sv. Havel)</span>
-                            <input class="field-input" type="text" value="${escapeHtml(rec.money_rent_urok || '')}" onchange="updateRecordField(${idx}, 'money_rent_urok', this.value)">
+                            <span class="field-label">Úrok sv. Jiří</span>
+                            <input class="field-input" type="text" placeholder="např. 12 gr." value="${escapeHtml(rec.rent_george || '')}" onchange="updateRecordField(${idx}, 'rent_george', this.value)">
+                        </div>
+                        <div class="field-group">
+                            <span class="field-label">Úrok sv. Havel</span>
+                            <input class="field-input" type="text" placeholder="např. 12 gr." value="${escapeHtml(rec.rent_gallus || '')}" onchange="updateRecordField(${idx}, 'rent_gallus', this.value)">
                         </div>
                         <div class="field-group">
                             <span class="field-label">Robota</span>
-                            <input class="field-input" type="text" value="${escapeHtml(rec.corvee_robota || '')}" onchange="updateRecordField(${idx}, 'corvee_robota', this.value)">
+                            <input class="field-input" type="text" placeholder="např. orba 2 dni" value="${escapeHtml(rec.corvee_robota || '')}" onchange="updateRecordField(${idx}, 'corvee_robota', this.value)">
                         </div>
                     </div>
 
                     <div class="card-row">
                         <div class="field-group">
-                            <span class="field-label">Naturální dávky (slepice, vejce)</span>
-                            <input class="field-input" type="text" value="${escapeHtml(rec.natural_dues || '')}" onchange="updateRecordField(${idx}, 'natural_dues', this.value)">
+                            <span class="field-label">Slepice (ks)</span>
+                            <input class="field-input" type="text" placeholder="např. 2" value="${escapeHtml(rec.dues_chickens || '')}" onchange="updateRecordField(${idx}, 'dues_chickens', this.value)">
                         </div>
+                        <div class="field-group">
+                            <span class="field-label">Vejce (ks)</span>
+                            <input class="field-input" type="text" placeholder="např. 20" value="${escapeHtml(rec.dues_eggs || '')}" onchange="updateRecordField(${idx}, 'dues_eggs', this.value)">
+                        </div>
+                        <div class="field-group">
+                            <span class="field-label">Oves / Obilí</span>
+                            <input class="field-input" type="text" placeholder="např. 1 strych" value="${escapeHtml(rec.dues_grain || '')}" onchange="updateRecordField(${idx}, 'dues_grain', this.value)">
+                        </div>
+                        <div class="field-group">
+                            <span class="field-label">Ostatní naturálie</span>
+                            <input class="field-input" type="text" placeholder="např. husa, příze" value="${escapeHtml(rec.dues_other || rec.natural_dues || '')}" onchange="updateRecordField(${idx}, 'dues_other', this.value)">
+                        </div>
+                    </div>
+
+                    <!-- 3. Životní data a pobyt (univerzální formulář pro jakýkoli pramen) -->
+                    <div class="section-divider" onclick="toggleDetails(${idx})" title="Klikněte pro zobrazení/skrytí životních dat">
+                        Životní data a pobyt (volitelné) ▾
+                    </div>
+                    <div id="details-${idx}" style="display:none; flex-direction:column; gap:8px;">
+                        <div class="card-row">
+                            <div class="field-group">
+                                <span class="field-label">Narození / Křest</span>
+                                <input class="field-input" type="text" placeholder="datum či rok" value="${escapeHtml(rec.birth_date || '')}" onchange="updateRecordField(${idx}, 'birth_date', this.value)">
+                            </div>
+                            <div class="field-group">
+                                <span class="field-label">Sňatek</span>
+                                <input class="field-input" type="text" placeholder="datum sňatku" value="${escapeHtml(rec.marriage_date || '')}" onchange="updateRecordField(${idx}, 'marriage_date', this.value)">
+                            </div>
+                            <div class="field-group">
+                                <span class="field-label">Úmrtí / Pohřeb</span>
+                                <input class="field-input" type="text" placeholder="datum úmrtí" value="${escapeHtml(rec.death_date || '')}" onchange="updateRecordField(${idx}, 'death_date', this.value)">
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <span class="field-label">Místo / datum pobytu (kde se kdy nacházel)</span>
+                            <input class="field-input" type="text" placeholder="např. 1651 Hořice, 1660 Náchod" value="${escapeHtml(rec.residence_info || '')}" onchange="updateRecordField(${idx}, 'residence_info', this.value)">
+                        </div>
+                    </div>
+
+                    <!-- 4. Vlastní kategorie / pole -->
+                    <div class="custom-fields-area">
+                        <span style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Doplňková pole osoby</span>
+                        ${customFieldsHtml || '<span style="font-size:0.75rem; color:var(--text-muted); font-style:italic;">Žádná zvláštní pole</span>'}
+                        <button class="btn-add-custom" onclick="promptAddCustomField(${idx})">+ Přidat novou kategorii této osobě</button>
                     </div>
                 `;
                 container.appendChild(card);
             });
         }
 
+        function toggleDetails(idx) {
+            const el = document.getElementById(`details-${idx}`);
+            if (el.style.display === 'none') {
+                el.style.display = 'flex';
+            } else {
+                el.style.display = 'none';
+            }
+        }
+
+        function updateRecordName(idx, field, value) {
+            currentRecords[idx][field] = value;
+            const fn = currentRecords[idx]['first_name'] || '';
+            const ln = currentRecords[idx]['last_name'] || '';
+            currentRecords[idx]['full_name'] = (fn + ' ' + ln).trim();
+        }
+
         function updateRecordField(idx, field, value) {
             currentRecords[idx][field] = value;
-            if (field === 'full_name') {
-                const parts = value.trim().split(' ');
-                currentRecords[idx]['first_name'] = parts[0] || '';
-                currentRecords[idx]['last_name'] = parts.slice(1).join(' ') || '';
+        }
+
+        function updateCustomFieldValue(personIdx, key, val) {
+            if (!currentRecords[personIdx].custom_fields) currentRecords[personIdx].custom_fields = {};
+            currentRecords[personIdx].custom_fields[key] = val;
+        }
+
+        function removeCustomField(personIdx, key) {
+            if (confirm(`Odebrat kategorii "${key}" u této osoby?`)) {
+                delete currentRecords[personIdx].custom_fields[key];
+                renderRecords();
             }
+        }
+
+        function promptAddCustomField(personIdx) {
+            // Seznam existujících kategorií k rychlému výběru
+            const availableOptions = categoryCatalog.map(c => c.label).join("\n- ");
+            const chosen = prompt(`Zadejte název kategorie (pole).\n\nZvolte z katalogu nebo zadejte novou:\n- ${availableOptions}`);
+            if (!chosen || !chosen.trim()) return;
+
+            const trimmed = chosen.trim();
+            // Pokud ještě není v katalogu, přidáme ji tam
+            const exists = categoryCatalog.some(c => c.label.toLowerCase() === trimmed.toLowerCase());
+            if (!exists) {
+                const key = 'custom_' + trimmed.toLowerCase().replace(/[^a-z0-9]/gi, '_');
+                categoryCatalog.push({ key: key, label: trimmed, type: 'custom' });
+                localStorage.setItem('archival_category_catalog', JSON.stringify(categoryCatalog));
+            }
+
+            if (!currentRecords[personIdx].custom_fields) currentRecords[personIdx].custom_fields = {};
+            currentRecords[personIdx].custom_fields[trimmed] = "";
+            renderRecords();
         }
 
         function addNewRecord() {
             currentRecords.push({
                 source_file: currentPhoto.rel_path,
-                full_name: 'Nové jméno',
-                first_name: 'Nové',
-                last_name: 'jméno',
+                first_name: 'Jan',
+                last_name: 'Novák',
+                full_name: 'Jan Novák',
                 settlement_orig: currentRecords[0]?.settlement_orig || 'Hořice',
                 source_page_folio: currentRecords[0]?.source_page_folio || '',
                 raw_role: 'soused',
+                social_status: 'poddaný (U)',
                 land_tenure_raw: 'grunt',
-                money_rent_urok: '',
+                rent_george: '',
+                rent_gallus: '',
                 corvee_robota: '',
-                natural_dues: ''
+                dues_chickens: '',
+                dues_eggs: '',
+                dues_grain: '',
+                dues_other: '',
+                birth_date: '',
+                marriage_date: '',
+                death_date: '',
+                residence_info: '',
+                notes: '',
+                custom_fields: {}
             });
             renderRecords();
             const container = document.getElementById('recordsList');
@@ -689,8 +1019,16 @@
         }
 
         function deleteRecord(idx) {
-            if (confirm('Opravdu smazat tento řádek?')) {
+            const pName = currentRecords[idx].full_name || 'tuto osobu';
+            if (confirm(`Opravdu smazat osobu: ${pName}?`)) {
                 currentRecords.splice(idx, 1);
+                renderRecords();
+            }
+        }
+
+        function clearPageRecords() {
+            if (confirm('Označit tuto stránku jako stránku bez osob (vymazat všechny řádky osob)?\nPoužijte např. pro prázdné listy, titulní desky či pouhé hospodářské objekty.')) {
+                currentRecords = [];
                 renderRecords();
             }
         }
@@ -717,7 +1055,7 @@
 
             if (googleScriptUrl) {
                 const payload = {
-                    auth_token: AUTH_TOKEN, // Secured API token
+                    auth_token: AUTH_TOKEN,
                     photo_path: currentPhoto.rel_path,
                     records: currentRecords,
                     is_verified: isVerified
@@ -768,7 +1106,6 @@
             scale = 0.55;
             posX = 0;
             posY = 0;
-            rotation = 0;
             updateTransform();
         }
 
@@ -788,19 +1125,19 @@
 
         function handleWheel(e) {
             e.preventDefault();
-            const delta = e.deltaY > 0 ? 0.9 : 1.1;
-            zoom(delta);
+            const factor = e.deltaY < 0 ? 1.15 : 0.85;
+            zoom(factor);
         }
 
         function startDrag(e) {
             isDragging = true;
             startX = e.clientX - posX;
             startY = e.clientY - posY;
-            window.addEventListener('mousemove', onDrag);
+            window.addEventListener('mousemove', drag);
             window.addEventListener('mouseup', stopDrag);
         }
 
-        function onDrag(e) {
+        function drag(e) {
             if (!isDragging) return;
             posX = e.clientX - startX;
             posY = e.clientY - startY;
@@ -809,12 +1146,18 @@
 
         function stopDrag() {
             isDragging = false;
-            window.removeEventListener('mousemove', onDrag);
+            window.removeEventListener('mousemove', drag);
             window.removeEventListener('mouseup', stopDrag);
         }
 
-        function escapeHtml(text) {
-            return String(text || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
     </script>
 </body>

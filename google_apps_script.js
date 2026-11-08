@@ -1,15 +1,41 @@
 /**
  * Zabezpečený Google Apps Script pro archivní verifikační centrum.
  * 
- * BEZPEČNOSTNÍ PRVKY:
- * 1. Každý příchozí požadavek (POST i GET) je striktně ověřován tajným autorizačním tokenem AUTH_TOKEN.
- * 2. Cizí osoby bez znalosti tokenu nemohou do tabulky nic zapsat ani z ní číst (vrací se 403 Forbidden).
- * 3. Nastavení "Anyone" (Kdokoli) v Google nasazení slouží pouze k tomu, aby se specialista nemusel
- *    přihlašovat Google účtem, ale přístup je chráněn naším API klíčem.
+ * Podporuje standardizovaný dynamický katalog kategorií:
+ * Všechna známá pole jsou v tabulce vždy přítomna pro každou osobu
+ * (pokud není vyplněno, zůstává prázdné), plus dynamické vlastní kategorie.
  */
 
-// Tajný bezpečnostní token (musí se shodovat s tokenem v index.html)
 var AUTH_TOKEN = "e87f8b9e4a83b2719fbc490d12e68c94a53e";
+
+// Standardní pevné pořadí sloupců
+var STANDARD_COLUMNS = [
+  "Zdrojový soubor (Snímek)",
+  "Folio / Strana",
+  "Lokalita / Ves",
+  "Křestní jméno",
+  "Příjmení / Přízvisko",
+  "Celé jméno",
+  "Role / Povolání",
+  "Společenský stav",
+  "Držba půdy / Grunt",
+  "Úrok sv. Jiří",
+  "Úrok sv. Havel",
+  "Celkový peněžitý úrok",
+  "Robota",
+  "Slepice (ks)",
+  "Vejce (ks)",
+  "Oves / obilí",
+  "Ostatní naturálie",
+  "Datum narození / křtu",
+  "Datum sňatku",
+  "Datum úmrtí / pohřbu",
+  "Místo / datum pobytu",
+  "Poznámky",
+  "Vlastní pole (JSON)",
+  "Stav ověření",
+  "Datum uložení"
+];
 
 function setupSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -18,25 +44,20 @@ function setupSheet() {
   var sheetRecords = ss.getSheetByName("Urbářské záznamy");
   if (!sheetRecords) {
     sheetRecords = ss.insertSheet("Urbářské záznamy");
-    sheetRecords.appendRow([
-      "Zdrojový soubor (Snímek)",
-      "Folio / Strana",
-      "Lokalita / Ves",
-      "Jméno a Příjmení",
-      "Role / Povolání",
-      "Držba půdy / Grunt",
-      "Peněžitý úrok (sv. Jiří / sv. Havel)",
-      "Robota",
-      "Naturální dávky",
-      "Poznámky k usedlosti",
-      "Stav ověření",
-      "Datum uložení"
-    ]);
-    sheetRecords.getRange(1, 1, 1, 12).setBackground("#2B4C7E").setFontColor("#FFFFFF").setFontWeight("bold");
+    sheetRecords.appendRow(STANDARD_COLUMNS);
+    sheetRecords.getRange(1, 1, 1, STANDARD_COLUMNS.length).setBackground("#2B4C7E").setFontColor("#FFFFFF").setFontWeight("bold");
     sheetRecords.setFrozenRows(1);
+  } else {
+    // Pokud má starou strukturu záhlaví (např. 12 sloupců), aktualizujeme ho na standardizované
+    var headerRow = sheetRecords.getRange(1, 1, 1, sheetRecords.getLastColumn() || 1).getValues()[0];
+    if (headerRow.length < STANDARD_COLUMNS.length || headerRow[3] !== "Křestní jméno") {
+      sheetRecords.getRange(1, 1, 1, STANDARD_COLUMNS.length).setValues([STANDARD_COLUMNS]);
+      sheetRecords.getRange(1, 1, 1, STANDARD_COLUMNS.length).setBackground("#2B4C7E").setFontColor("#FFFFFF").setFontWeight("bold");
+      sheetRecords.setFrozenRows(1);
+    }
   }
 
-  // List 2: Stav ověření
+  // List 2: Stav ověření snímků
   var sheetStatus = ss.getSheetByName("Stav ověření snímků");
   if (!sheetStatus) {
     sheetStatus = ss.insertSheet("Stav ověření snímků");
@@ -82,26 +103,44 @@ function doPost(e) {
       }
     }
 
-    // 2. Vložení aktualizovaných řádků
+    // 2. Vložení aktualizovaných řádků se všemi standardizovanými poli
     for (var r = 0; r < records.length; r++) {
       var rec = records[r];
+      var customFieldsStr = "";
+      if (rec.custom_fields && typeof rec.custom_fields === 'object') {
+        customFieldsStr = JSON.stringify(rec.custom_fields);
+      }
+
       sheetRecords.appendRow([
         photoPath,
         rec.source_page_folio || "",
         rec.settlement_orig || "",
-        rec.full_name || "",
+        rec.first_name || "",
+        rec.last_name || "",
+        rec.full_name || (rec.first_name + " " + rec.last_name).trim(),
         rec.raw_role || "",
+        rec.social_status || "",
         rec.land_tenure_raw || "",
+        rec.rent_george || "",
+        rec.rent_gallus || "",
         rec.money_rent_urok || "",
         rec.corvee_robota || "",
-        rec.natural_dues || "",
-        rec.estate_notes || "",
+        rec.dues_chickens || "",
+        rec.dues_eggs || "",
+        rec.dues_grain || "",
+        rec.dues_other || rec.natural_dues || "",
+        rec.birth_date || "",
+        rec.marriage_date || "",
+        rec.death_date || "",
+        rec.residence_info || "",
+        rec.notes || rec.estate_notes || "",
+        customFieldsStr,
         isVerified,
         timestamp
       ]);
     }
 
-    // 3. Aktualizace stavu ověření
+    // 3. Aktualizace stavu ověření snímku
     var statusData = sheetStatus.getDataRange().getValues();
     var statusRowIndex = -1;
     for (var s = 1; s < statusData.length; s++) {
@@ -132,7 +171,6 @@ function doPost(e) {
 }
 
 function doGet(e) {
-  // Ověření tokenu i pro čtení
   var token = (e && e.parameter) ? e.parameter.auth_token : "";
   if (token !== AUTH_TOKEN) {
     return ContentService.createTextOutput(JSON.stringify({
@@ -151,22 +189,41 @@ function doGet(e) {
 
   for (var i = 1; i < data.length; i++) {
     if (!photoQuery || data[i][0] === photoQuery) {
+      var row = data[i];
+      var customObj = {};
+      if (row[22]) {
+        try { customObj = JSON.parse(row[22]); } catch(ex) {}
+      }
+
       result.push({
-        source_file: data[i][0],
-        source_page_folio: data[i][1],
-        settlement_orig: data[i][2],
-        full_name: data[i][3],
-        raw_role: data[i][4],
-        land_tenure_raw: data[i][5],
-        money_rent_urok: data[i][6],
-        corvee_robota: data[i][7],
-        natural_dues: data[i][8],
-        estate_notes: data[i][9],
-        is_verified: data[i][10] === "Ano",
-        updated_at: data[i][11]
+        source_file: row[0],
+        source_page_folio: row[1],
+        settlement_orig: row[2],
+        first_name: row[3],
+        last_name: row[4],
+        full_name: row[5],
+        raw_role: row[6],
+        social_status: row[7],
+        land_tenure_raw: row[8],
+        rent_george: row[9],
+        rent_gallus: row[10],
+        money_rent_urok: row[11],
+        corvee_robota: row[12],
+        dues_chickens: row[13],
+        dues_eggs: row[14],
+        dues_grain: row[15],
+        dues_other: row[16],
+        birth_date: row[17],
+        marriage_date: row[18],
+        death_date: row[19],
+        residence_info: row[20],
+        notes: row[21],
+        custom_fields: customObj,
+        is_verified: row[23] === "Ano"
       });
     }
   }
 
-  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
 }
