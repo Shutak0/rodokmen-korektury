@@ -23,14 +23,16 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
+        html, body {
             font-family: 'Inter', -apple-system, sans-serif;
             background: var(--bg-dark);
             color: var(--text-main);
-            min-height: 100vh;
+            height: 100vh;
+            max-height: 100vh;
+            width: 100vw;
             display: flex;
             flex-direction: column;
-            overflow-x: hidden;
+            overflow: hidden;
         }
 
         header {
@@ -40,49 +42,51 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            min-height: 56px;
+            min-height: 52px;
             flex-shrink: 0;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
         }
         .brand {
             display: flex;
             align-items: center;
             gap: 10px;
             font-family: 'Cinzel', serif;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             color: var(--accent);
             letter-spacing: 0.5px;
         }
-        .brand span { color: var(--text-main); font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 500; opacity: 0.7; }
+        .brand span { color: var(--text-main); font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 500; opacity: 0.7; }
 
         .header-controls {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: wrap;
         }
 
-        /* Mobile View Toggle Tabs */
+        /* Mobile / Narrow Screen View Toggle Tabs */
         .mobile-view-tabs {
             display: none;
             width: 100%;
             background: var(--bg-card);
             border-bottom: 1px solid var(--border);
             padding: 4px 8px;
-            gap: 6px;
+            gap: 4px;
+            flex-shrink: 0;
         }
         .mobile-tab-btn {
             flex: 1;
-            padding: 8px;
+            padding: 6px 8px;
             background: transparent;
             border: 1px solid transparent;
             border-radius: 6px;
             color: var(--text-muted);
-            font-size: 0.8rem;
+            font-size: 0.76rem;
             font-weight: 600;
             cursor: pointer;
             text-align: center;
+            white-space: nowrap;
         }
         .mobile-tab-btn.active {
             background: var(--bg-panel);
@@ -92,21 +96,26 @@
 
         .workspace {
             display: flex;
+            flex-direction: row;
             flex: 1;
-            height: calc(100vh - 56px);
+            min-height: 0;
+            width: 100%;
             overflow: hidden;
             position: relative;
         }
 
         /* Left Sidebar: Photo list */
         .sidebar {
-            width: 290px;
-            min-width: 250px;
+            width: 240px;
+            min-width: 200px;
+            height: 100%;
+            min-height: 0;
             background: var(--bg-panel);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
+            overflow: hidden;
         }
         .sidebar-header {
             padding: 10px;
@@ -114,6 +123,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            flex-shrink: 0;
         }
         .search-box {
             background: var(--bg-card);
@@ -121,7 +131,7 @@
             color: var(--text-main);
             padding: 7px 10px;
             border-radius: 6px;
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             width: 100%;
         }
         .filter-tabs { display: flex; gap: 4px; }
@@ -139,7 +149,12 @@
         }
         .tab-btn.active, .tab-btn:hover { background: var(--bg-card); color: var(--accent); border-color: var(--accent); }
 
-        .photo-list { flex: 1; overflow-y: auto; padding: 6px; }
+        .photo-list {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 6px;
+        }
         .photo-item {
             padding: 8px 10px;
             border-radius: 6px;
@@ -154,8 +169,8 @@
         .photo-item:hover { background: var(--bg-card); }
         .photo-item.active { background: var(--bg-card); border-color: var(--accent); }
         .photo-meta { display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
-        .photo-title { font-size: 0.82rem; font-weight: 600; color: #fff; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
-        .photo-subtitle { font-size: 0.7rem; color: var(--text-muted); }
+        .photo-title { font-size: 0.8rem; font-weight: 600; color: #fff; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+        .photo-subtitle { font-size: 0.68rem; color: var(--text-muted); }
         .badge {
             font-size: 0.68rem;
             padding: 2px 6px;
@@ -168,8 +183,10 @@
 
         /* Middle: Image Viewer */
         .viewer-container {
-            flex: 2;
-            min-width: 450px;
+            flex: 1.6;
+            min-width: 280px;
+            height: 100%;
+            min-height: 0;
             display: flex;
             flex-direction: column;
             background: #080b10;
@@ -180,55 +197,61 @@
         .viewer-toolbar {
             background: var(--bg-panel);
             border-bottom: 1px solid var(--border);
-            padding: 6px 12px;
+            padding: 6px 10px;
             display: flex;
             align-items: center;
             gap: 6px;
             flex-wrap: wrap;
             z-index: 10;
+            flex-shrink: 0;
         }
         .tool-btn {
             background: var(--bg-card);
             border: 1px solid var(--border);
             color: var(--text-main);
-            padding: 5px 10px;
+            padding: 5px 8px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
             white-space: nowrap;
         }
         .tool-btn:hover { border-color: var(--accent); color: var(--accent); }
 
         .canvas-area {
             flex: 1;
+            min-height: 0;
+            width: 100%;
+            height: 100%;
             position: relative;
             overflow: hidden;
             cursor: grab;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: #080b10;
         }
         .canvas-area:active { cursor: grabbing; }
         #manuscript-img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
             max-width: none;
             max-height: none;
-            position: absolute;
             transform-origin: center center;
             transition: filter 0.2s;
             user-select: none;
             box-shadow: 0 10px 40px rgba(0,0,0,0.8);
             image-rendering: -webkit-optimize-contrast;
-            image-rendering: high-quality;
         }
 
         /* Right: Editor Form Container */
         .editor-container {
+            flex: 1.1;
             width: 440px;
-            min-width: 380px;
-            max-width: 480px;
+            min-width: 320px;
+            max-width: 520px;
+            height: 100%;
+            min-height: 0;
             background: var(--bg-panel);
             display: flex;
             flex-direction: column;
@@ -236,15 +259,16 @@
             overflow: hidden;
         }
         .editor-header {
-            padding: 10px 14px;
+            padding: 8px 12px;
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: wrap;
+            flex-shrink: 0;
         }
-        .editor-title { font-weight: 700; font-size: 0.9rem; color: #fff; }
+        .editor-title { font-weight: 700; font-size: 0.88rem; color: #fff; }
         .editor-actions { display: flex; gap: 5px; flex-wrap: wrap; }
         
         .btn-save {
@@ -252,10 +276,10 @@
             color: #000;
             border: none;
             font-weight: 700;
-            padding: 7px 12px;
+            padding: 6px 12px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             transition: 0.2s;
             white-space: nowrap;
         }
@@ -265,10 +289,10 @@
             background: var(--bg-dark);
             color: var(--text-main);
             border: 1px solid var(--border);
-            padding: 7px 10px;
+            padding: 6px 10px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 0.76rem;
+            font-size: 0.75rem;
             white-space: nowrap;
         }
         .btn-add:hover { border-color: var(--accent-blue); }
@@ -277,16 +301,17 @@
             background: var(--danger-bg);
             color: #fca5a5;
             border: 1px solid rgba(239,68,68,0.4);
-            padding: 7px 10px;
+            padding: 6px 10px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 0.76rem;
+            font-size: 0.75rem;
             white-space: nowrap;
         }
         .btn-clear-page:hover { border-color: var(--danger); background: rgba(239,68,68,0.25); color: #fff; }
 
         .records-scroll {
             flex: 1;
+            min-height: 0;
             overflow-y: auto;
             overflow-x: hidden;
             padding: 10px 12px;
@@ -306,6 +331,7 @@
             position: relative;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
             width: 100%;
+            flex-shrink: 0;
         }
         .record-card-header {
             display: flex;
@@ -340,7 +366,7 @@
         /* Responsive Form Rows & Grids */
         .form-grid-3 {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
             gap: 8px;
             width: 100%;
         }
@@ -352,7 +378,7 @@
         }
         .form-grid-4 {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(75px, 1fr));
             gap: 8px;
             width: 100%;
         }
@@ -362,7 +388,7 @@
             flex-direction: column;
             gap: 2px;
             width: 100%;
-            min-width: 0; /* Prevents overflow in flex/grid */
+            min-width: 0;
         }
         .field-label {
             font-size: 0.66rem;
@@ -378,7 +404,7 @@
             background: var(--bg-dark);
             border: 1px solid var(--border);
             color: #fff;
-            padding: 6px 8px;
+            padding: 5px 8px;
             border-radius: 5px;
             font-size: 0.8rem;
             outline: none;
@@ -447,7 +473,7 @@
         .btn-add-custom:hover { background: rgba(212,175,55,0.1); }
 
         .editor-footer {
-            padding: 10px 14px;
+            padding: 8px 12px;
             border-top: 1px solid var(--border);
             background: var(--bg-card);
             display: flex;
@@ -455,8 +481,9 @@
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 8px;
+            flex-shrink: 0;
         }
-        .verify-checkbox-label { display: flex; align-items: center; gap: 7px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+        .verify-checkbox-label { display: flex; align-items: center; gap: 7px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
         .verify-checkbox-label input { width: 16px; height: 16px; accent-color: var(--success); cursor: pointer; }
 
         /* Modals */
@@ -540,13 +567,16 @@
         .inverted { filter: invert(90%) contrast(150%); }
         .sharpen { filter: contrast(130%) grayscale(40%); }
 
-        /* Mobile & Tablet Responsive Media Queries */
-        @media (max-width: 900px) {
+        /* Narrow Screen / Tablet / Mobile Responsive Layout (<= 1000px) */
+        @media (max-width: 1000px) {
             .mobile-view-tabs { display: flex; }
             .workspace {
                 flex-direction: column;
-                height: calc(100vh - 105px);
+                flex: 1;
+                min-height: 0;
+                overflow: hidden;
             }
+            /* Default on narrow screens is SPLIT mode: both Viewer and Editor visible! */
             .sidebar {
                 width: 100%;
                 height: 100%;
@@ -554,24 +584,37 @@
                 border-bottom: 1px solid var(--border);
                 display: none;
             }
-            .sidebar.mobile-active { display: flex; }
-            
             .viewer-container {
                 width: 100%;
-                height: 100%;
+                min-width: 0;
+                height: 44%;
+                min-height: 200px;
+                flex: none;
                 border-right: none;
-                border-bottom: 1px solid var(--border);
-                display: none;
+                border-bottom: 2px solid var(--accent);
+                display: flex;
             }
-            .viewer-container.mobile-active { display: flex; }
-
             .editor-container {
                 width: 100%;
+                min-width: 0;
                 max-width: 100%;
-                height: 100%;
-                display: none;
+                flex: 1;
+                min-height: 0;
+                display: flex;
             }
-            .editor-container.mobile-active { display: flex; }
+
+            /* Mode overrides when user clicks specific tab on narrow screen */
+            .workspace.mode-list .sidebar { display: flex; height: 100%; }
+            .workspace.mode-list .viewer-container { display: none; }
+            .workspace.mode-list .editor-container { display: none; }
+
+            .workspace.mode-viewer .sidebar { display: none; }
+            .workspace.mode-viewer .viewer-container { display: flex; height: 100%; border-bottom: none; }
+            .workspace.mode-viewer .editor-container { display: none; }
+
+            .workspace.mode-editor .sidebar { display: none; }
+            .workspace.mode-editor .viewer-container { display: none; }
+            .workspace.mode-editor .editor-container { display: flex; height: 100%; }
         }
     </style>
 </head>
@@ -635,14 +678,15 @@
         </div>
     </header>
 
-    <!-- Mobile Navigation Switcher (shown on <=900px screens) -->
+    <!-- Navigation Switcher for screens <= 1000px (Default: Split Foto + Záznamy) -->
     <div class="mobile-view-tabs">
         <button class="mobile-tab-btn" id="mTabList" onclick="switchMobileView('list')">📁 Snímky (190)</button>
-        <button class="mobile-tab-btn active" id="mTabViewer" onclick="switchMobileView('viewer')">🔍 Náhled foto</button>
-        <button class="mobile-tab-btn" id="mTabEditor" onclick="switchMobileView('editor')">✏️ Záznamy</button>
+        <button class="mobile-tab-btn active" id="mTabSplit" onclick="switchMobileView('split')">🔀 Foto + Záznamy</button>
+        <button class="mobile-tab-btn" id="mTabViewer" onclick="switchMobileView('viewer')">🔍 Jen foto</button>
+        <button class="mobile-tab-btn" id="mTabEditor" onclick="switchMobileView('editor')">✏️ Jen záznamy</button>
     </div>
 
-    <div class="workspace">
+    <div class="workspace" id="workspaceArea">
         <!-- Panel 1: Snímky -->
         <div class="sidebar" id="sidebarPanel">
             <div class="sidebar-header">
@@ -657,17 +701,17 @@
         </div>
 
         <!-- Panel 2: Obrazový prohlížeč -->
-        <div class="viewer-container mobile-active" id="viewerPanel">
+        <div class="viewer-container" id="viewerPanel">
             <div class="viewer-toolbar">
-                <span id="currentImageLabel" style="font-weight:600; font-size:0.8rem; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:260px;">Vyberte fotografii</span>
-                <div style="margin-left:auto; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
-                    <button class="tool-btn" onclick="zoom(1.2)">🔍 +</button>
-                    <button class="tool-btn" onclick="zoom(0.83)">🔍 −</button>
-                    <button class="tool-btn" onclick="fitImageToScreen()" title="Přizpůsobit celou stránku na výšku okna">📐 Celá stránka</button>
-                    <button class="tool-btn" onclick="fitImageWidth()" title="Přizpůsobit na šířku okna pro čtení textu">↔ Na šířku</button>
-                    <button class="tool-btn" onclick="resetZoom()">⟲ 100%</button>
-                    <button class="tool-btn" onclick="rotateImage()">↻ 90°</button>
-                    <button class="tool-btn" onclick="toggleContrast()">🌓 Kontrast</button>
+                <span id="currentImageLabel" style="font-weight:600; font-size:0.8rem; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:240px;">Vyberte fotografii</span>
+                <div style="margin-left:auto; display:flex; gap:5px; flex-wrap:wrap; align-items:center;">
+                    <button class="tool-btn" onclick="zoom(1.2)" title="Přiblížit">🔍 +</button>
+                    <button class="tool-btn" onclick="zoom(0.83)" title="Oddálit">🔍 −</button>
+                    <button class="tool-btn" onclick="fitImageToScreen()" title="Přizpůsobit celou stránku do okna">📐 Celá</button>
+                    <button class="tool-btn" onclick="fitImageWidth()" title="Přizpůsobit na šířku okna">↔ Šířka</button>
+                    <button class="tool-btn" onclick="resetZoom()" title="Původní velikost 100%">⟲ 100%</button>
+                    <button class="tool-btn" onclick="rotateImage()" title="Otočit o 90°">↻ 90°</button>
+                    <button class="tool-btn" onclick="toggleContrast()" title="Změnit kontrast / inverzi">🌓 Kontrast</button>
                 </div>
             </div>
             <div class="canvas-area" id="canvasArea" onwheel="handleWheel(event)" onmousedown="startDrag(event)">
@@ -738,7 +782,7 @@
         const DEFAULT_GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8sBvGBs1tlFGAyon4si2zZQ_VseR6t17Xdc5V2OzKfNK95hbHW_ttnRWlTIcotXYm/exec";
         let googleScriptUrl = localStorage.getItem('google_script_url') || DEFAULT_GOOGLE_SCRIPT_URL;
 
-        let scale = 0.55;
+        let scale = 0.45;
         let posX = 0;
         let posY = 0;
         let rotation = 0;
@@ -760,6 +804,12 @@
                 initApp();
             }
         };
+
+        window.addEventListener('resize', () => {
+            if (currentPhoto) {
+                fitImageToScreen();
+            }
+        });
 
         async function doLogin() {
             const pin = document.getElementById('pinCode').value;
@@ -783,27 +833,27 @@
         }
 
         function switchMobileView(view) {
-            const sidebar = document.getElementById('sidebarPanel');
-            const viewer = document.getElementById('viewerPanel');
-            const editor = document.getElementById('editorPanel');
-            
-            const btnList = document.getElementById('mTabList');
-            const btnViewer = document.getElementById('mTabViewer');
-            const btnEditor = document.getElementById('mTabEditor');
+            const ws = document.getElementById('workspaceArea');
+            ws.className = 'workspace';
+            if (view === 'list') ws.classList.add('mode-list');
+            else if (view === 'viewer') ws.classList.add('mode-viewer');
+            else if (view === 'editor') ws.classList.add('mode-editor');
+            // 'split' uses default styles where both viewer and editor are shown
 
-            [sidebar, viewer, editor].forEach(el => el.classList.remove('mobile-active'));
-            [btnList, btnViewer, btnEditor].forEach(el => el.classList.remove('active'));
+            ['mTabList', 'mTabSplit', 'mTabViewer', 'mTabEditor'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('active');
+            });
+            if (view === 'list') document.getElementById('mTabList').classList.add('active');
+            else if (view === 'viewer') document.getElementById('mTabViewer').classList.add('active');
+            else if (view === 'editor') document.getElementById('mTabEditor').classList.add('active');
+            else document.getElementById('mTabSplit').classList.add('active');
 
-            if (view === 'list') {
-                sidebar.classList.add('mobile-active');
-                btnList.classList.add('active');
-            } else if (view === 'viewer') {
-                viewer.classList.add('mobile-active');
-                btnViewer.classList.add('active');
-            } else if (view === 'editor') {
-                editor.classList.add('mobile-active');
-                btnEditor.classList.add('active');
-            }
+            setTimeout(() => {
+                if (currentPhoto && (view === 'split' || view === 'viewer')) {
+                    fitImageToScreen();
+                }
+            }, 60);
         }
 
         function openSettings() {
@@ -935,9 +985,8 @@
                 item.className = 'photo-item' + (currentPhoto && currentPhoto.rel_path === p.rel_path ? ' active' : '');
                 item.onclick = () => {
                     selectPhoto(p);
-                    // On mobile, auto-switch to viewer after selecting photo
-                    if (window.innerWidth <= 900) {
-                        switchMobileView('viewer');
+                    if (window.innerWidth <= 1000) {
+                        switchMobileView('split');
                     }
                 };
 
@@ -967,10 +1016,16 @@
             renderPhotoList();
 
             const img = document.getElementById('manuscript-img');
+            rotation = 0;
+            posX = 0;
+            posY = 0;
             img.onload = function() {
                 fitImageToScreen();
             };
             img.src = `${encodeURI(photo.rel_path)}`;
+            if (img.complete && img.naturalWidth > 0) {
+                fitImageToScreen();
+            }
 
             currentRecords = allRecords.filter(r => r.source_file === photo.rel_path || r.source_file === photo.rel_path.replace('/', '\\'));
             document.getElementById('checkVerified').checked = photo.is_verified || false;
@@ -1273,7 +1328,7 @@
 
         function updateTransform() {
             const img = document.getElementById('manuscript-img');
-            img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale}) rotate(${rotation}deg)`;
+            img.style.transform = `translate(calc(-50% + ${posX}px), calc(-50% + ${posY}px)) scale(${scale}) rotate(${rotation}deg)`;
         }
 
         function zoom(factor) {
@@ -1288,11 +1343,10 @@
             if (!img.naturalWidth || !img.naturalHeight) return;
 
             const cW = canvas.clientWidth || 600;
-            const cH = canvas.clientHeight || 700;
+            const cH = canvas.clientHeight || 500;
 
-            // Fit whole page with 16px padding
-            const scaleX = (cW - 32) / img.naturalWidth;
-            const scaleY = (cH - 32) / img.naturalHeight;
+            const scaleX = Math.max(100, cW - 24) / img.naturalWidth;
+            const scaleY = Math.max(100, cH - 24) / img.naturalHeight;
             scale = Math.min(scaleX, scaleY);
             scale = Math.max(0.1, Math.min(scale, 2.0));
             posX = 0;
@@ -1306,7 +1360,7 @@
             if (!img.naturalWidth) return;
 
             const cW = canvas.clientWidth || 600;
-            scale = (cW - 24) / img.naturalWidth;
+            scale = Math.max(100, cW - 24) / img.naturalWidth;
             scale = Math.max(0.1, Math.min(scale, 2.5));
             posX = 0;
             posY = 0;
